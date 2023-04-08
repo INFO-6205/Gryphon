@@ -19,16 +19,16 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __vertexMap: Map[V, Vert
     def unit(vertexMap: Map[V, Vertex[V, X]]): Graph[V, E, X]
 }
 
-abstract class AbstractDirectedGraph[V, E](val _vertexMap: Map[V, Vertex[V, DirectedEdge[V, E]]]) extends AbstractGraph[V, E, DirectedEdge[V, E]](_vertexMap) {
-    def edges: Iterable[DirectedEdge[V, E]] = allAdjacencies.xs
+abstract class AbstractDirectedGraph[V, E](val _vertexMap: Map[V, Vertex[V, BaseDirectedEdge[V, E]]]) extends AbstractGraph[V, E, BaseDirectedEdge[V, E]](_vertexMap) {
+    def edges: Iterable[BaseDirectedEdge[V, E]] = allAdjacencies.xs
 
-    def addEdge(x: DirectedEdge[V, E]): Graph[V, E, DirectedEdge[V, E]] = unit(addXatV(vertexMap)(x.from, x))
+    def addEdge(x: BaseDirectedEdge[V, E]): Graph[V, E, BaseDirectedEdge[V, E]] = unit(addXatV(vertexMap)(x.from, x))
 }
 
-abstract class AbstractUndirectedGraph[V, E](val _vertexMap: Map[V, Vertex[V, UndirectedEdge[V, E]]]) extends AbstractGraph[V, E, UndirectedEdge[V, E]](_vertexMap) {
-    def edges: Iterable[UndirectedEdge[V, E]] = allAdjacencies.xs.distinct
+abstract class AbstractUndirectedGraph[V, E](val _vertexMap: Map[V, Vertex[V, BaseUndirectedEdge[V, E]]]) extends AbstractGraph[V, E, BaseUndirectedEdge[V, E]](_vertexMap) {
+    def edges: Iterable[BaseUndirectedEdge[V, E]] = allAdjacencies.xs.distinct
 
-    def addEdge(x: UndirectedEdge[V, E]): Graph[V, E, UndirectedEdge[V, E]] = {
+    def addEdge(x: BaseUndirectedEdge[V, E]): Graph[V, E, BaseUndirectedEdge[V, E]] = {
         val (v, w) = x.vertices
         unit(addXatV(addXatV(vertexMap)(v, x))(w, x))
     }
@@ -38,18 +38,18 @@ trait GraphLike[V, E] {
 
 }
 
-case class DirectedGraph[V, E](vertexMap: Map[V, Vertex[V, DirectedEdge[V, E]]]) extends AbstractDirectedGraph[V, E](vertexMap) {
+case class DirectedGraph[V, E](vertexMap: Map[V, Vertex[V, BaseDirectedEdge[V, E]]]) extends AbstractDirectedGraph[V, E](vertexMap) {
 
-    def unit(vertexMap: Map[V, Vertex[V, DirectedEdge[V, E]]]): Graph[V, E, DirectedEdge[V, E]] = DirectedGraph(vertexMap)
+    def unit(vertexMap: Map[V, Vertex[V, BaseDirectedEdge[V, E]]]): Graph[V, E, BaseDirectedEdge[V, E]] = DirectedGraph(vertexMap)
 }
 
 object DirectedGraph {
     def apply[V, E]: DirectedGraph[V, E] = new DirectedGraph(Map.empty)
 }
 
-case class UndirectedGraph[V, E](vertexMap: Map[V, Vertex[V, UndirectedEdge[V, E]]]) extends AbstractUndirectedGraph[V, E](vertexMap) {
+case class UndirectedGraph[V, E](vertexMap: Map[V, Vertex[V, BaseUndirectedEdge[V, E]]]) extends AbstractUndirectedGraph[V, E](vertexMap) {
 
-    def unit(vertexMap: Map[V, Vertex[V, UndirectedEdge[V, E]]]): Graph[V, E, UndirectedEdge[V, E]] = UndirectedGraph(vertexMap)
+    def unit(vertexMap: Map[V, Vertex[V, BaseUndirectedEdge[V, E]]]): Graph[V, E, BaseUndirectedEdge[V, E]] = UndirectedGraph(vertexMap)
 }
 
 object UndirectedGraph {
