@@ -31,10 +31,10 @@ trait Vertex[+V, X <: EdgeLike[V]] extends VertexLike[V] {
 /**
  * Abstract base class to represent an vertex.
  *
- * @tparam V the key (attribute) type of this Vertex.
+ * @tparam V the (covariant) key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex.
  */
-abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
+abstract class AbstractVertex[+V, X <: EdgeLike[V]] extends Vertex[V, X] {
     /**
      * Method to add an edge to this AbstractVertex.
      *
@@ -50,7 +50,7 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
      * @tparam Y the edge-type of the resulting AbstractVertex
      * @return a new AbstractVertex[V, Y].
      */
-    def unit[Y <: EdgeLike[V]](adjacent: AdjacencyList[Y]): AbstractVertex[V, Y]
+    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y]
 }
 
 /**
@@ -59,15 +59,31 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
  *
  * @param attribute (V) the attribute/key of the resulting Vertex.
  * @param adjacent  (X) the adjacency list of the resulting Vertex.
- * @tparam V the key (attribute) type of this Vertex.
+ * @tparam V the (covariant) key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
  */
-case class ConcreteVertex[V, X <: EdgeLike[V]](val attribute: V, val adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
-    def unit[Y <: EdgeLike[V]](adjacent: AdjacencyList[Y]): AbstractVertex[V, Y] = ConcreteVertex[V, Y](attribute, adjacent)
+case class ConcreteVertex[+V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
 
+    /**
+     * Method to construct a new ConcreteVersion based on the types V and X.
+     *
+     * @param adjacent an AdjacencyList[Y].
+     * @tparam W the vertex-type of the result (W must be a super-type of V).
+     * @tparam Y the edge-type of the resulting AbstractVertex
+     * @return a new ConcreteVertex[W, Y].
+     */
+    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y] = ConcreteVertex[W, Y](attribute, adjacent)
 }
 
 object Vertex {
+    /**
+     * Method to construct an empty Vertex.
+     *
+     * @param a (V) the (key) attribute of the result.
+     * @tparam V the underlying vertex-type of the result.
+     * @tparam X the underlying edge-type of the result.
+     * @return an empty ConcreteVertex[V, X].
+     */
     def empty[V, X <: EdgeLike[V]](a: V): Vertex[V, X] = ConcreteVertex[V, X](a, AdjacencyList.empty)
 }
 

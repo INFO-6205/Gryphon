@@ -13,6 +13,12 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         target.vertices shouldBe Set.empty
     }
 
+    it should "create a graph with one empty vertex" in {
+        val graph: UndirectedGraph[String, String] = UndirectedGraph[String, String]
+        val target = graph.addVertex("A")
+        target.vertices shouldBe Set("A")
+    }
+
     behavior of "DirectedGraph"
 
     it should "create an empty graph" in {
