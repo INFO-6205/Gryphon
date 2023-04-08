@@ -29,6 +29,12 @@ class EdgeSpec extends AnyFlatSpec with should.Matchers {
         target.attribute shouldBe "isa"
     }
 
+    it should "compare with other edge" in {
+        val target: DirectedOrderedEdge[String, Int] = DirectedOrderedEdge("A", "B", 1)
+        val comparand: DirectedOrderedEdge[String, Int] = DirectedOrderedEdge("A", "B", 2)
+        target.compare(comparand) shouldBe -1
+    }
+
     behavior of "UndirectedEdge"
 
     it should "vertices" in {
@@ -51,6 +57,12 @@ class EdgeSpec extends AnyFlatSpec with should.Matchers {
     it should "attribute" in {
         val target: UndirectedOrderedEdge[String, String] = UndirectedOrderedEdge("A", "B", "isa")
         target.attribute shouldBe "isa"
+    }
+
+    it should "compare with other edge" in {
+        val target: UndirectedOrderedEdge[String, Int] = UndirectedOrderedEdge("A", "B", 1)
+        val comparand: UndirectedOrderedEdge[String, Int] = UndirectedOrderedEdge("A", "B", 2)
+        target.compare(comparand) shouldBe -1
     }
 
 }
