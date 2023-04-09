@@ -5,23 +5,36 @@ import org.scalatest.matchers.should
 
 class EdgeSpec extends AnyFlatSpec with should.Matchers {
 
-    /**
-     * Case class for testing where we can have an attribute that does not have an order.
-     *
-     * @param name the name of the color.
-     */
-    case class Color(name: String)
+    private val red: Color = Color("red")
+    private val blue: Color = Color("blue")
+
+    behavior of "VertexPair"
+
+    it should "vertices" in {
+        val target: VertexPair[Color] = VertexPair(red, blue)
+        target.vertices shouldBe(red, blue)
+    }
+
+    it should "attribute" in {
+        val target: VertexPair[Color] = VertexPair(red, blue)
+        target.attribute shouldBe()
+    }
+
+    it should "toString" in {
+        val target: VertexPair[Color] = VertexPair(red, blue)
+        target.toString shouldBe "Color(red):Color(blue)"
+    }
 
     behavior of "DirectedEdge"
 
     it should "apply" in {
-        val target: DirectedEdge[Color, Color] = DirectedEdge(Color("A"), Color("B"), Color("C"))
-        target shouldBe new DirectedEdge(Color("A"), Color("B"), Color("C")) // leave "new" intact
+        val target: DirectedEdge[Color, Color] = DirectedEdge(red, blue, Color("green"))
+        target shouldBe new DirectedEdge(red, blue, Color("green")) // leave "new" intact
     }
 
     it should "from" in {
-        val target: DirectedEdge[Color, String] = DirectedEdge(Color("A"), Color("B"), "isa")
-        target.from shouldBe Color("A")
+        val target: DirectedEdge[Color, String] = DirectedEdge(red, blue, "isa")
+        target.from shouldBe red
     }
 
     it should "to" in {
@@ -167,3 +180,10 @@ class EdgeSpec extends AnyFlatSpec with should.Matchers {
     }
 
 }
+
+/**
+ * Case class for testing where we have an attribute that does not have an order.
+ *
+ * @param name the name of the color.
+ */
+case class Color(name: String)

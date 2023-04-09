@@ -189,6 +189,8 @@ abstract class BaseVertexPair[+V](_v1: V, _v2: V) extends Edge[V, Unit] {
      * The two vertices of this Edge as a tuple: (_v1, _v2)
      */
     val vertices: (V, V) = _v1 -> _v2
+
+    override def toString: String = s"${_v1}:${_v2}"
 }
 
 /**
