@@ -80,6 +80,8 @@ abstract class AbstractDirectedGraph[V, E](val _vertexMap: VertexMap[V, Directed
     /**
      * Method to create a new AbstractGraph which includes the edge x.
      *
+     * TESTME
+     *
      * @param x an edge to be added to this AbstractDirectedGraph.
      * @return a new AbstractGraph which also includes x.
      */
@@ -148,6 +150,8 @@ object DirectedGraph {
 
     /**
      * Method to construct a new empty directed graph with orderable vertex-type.
+     *
+     * TESTME
      *
      * @tparam V the (key) vertex-attribute type.
      *           Requires implicit evidence of Ordering[V].

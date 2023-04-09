@@ -5,6 +5,12 @@ import scala.collection.immutable.{HashMap, TreeMap}
 /**
  * Trait to define the behavior of a "vertex map," i.e. the set of adjacency lists for a graph.
  *
+ * There are two distinct types of VertexMap:
+ * <ol>
+ * <li>Those that can be ordered according to type V (these will use a TreeMap)</li>
+ * <li>Those that can't be ordered according to type V (these will use a HashMap)</li>
+ * </ol>
+ *
  * @tparam V the (key) vertex-type of a graph.
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
  */
@@ -62,8 +68,12 @@ case class OrderedVertexMap[V: Ordering, X <: EdgeLike[V]](map: TreeMap[V, Verte
     def unit(map: Map[V, Vertex[V, X]]): OrderedVertexMap[V, X] = OrderedVertexMap[V, X](map.to(TreeMap))
 }
 
+/**
+ * Companion object to OrderedVertexMap.
+ */
 object OrderedVertexMap {
     /**
+     * Method to yield an empty OrderedVertexMap.
      *
      * @tparam V the (key) vertex-attribute type.
      *           Requires implicit evidence of type Ordering[V].
@@ -74,6 +84,13 @@ object OrderedVertexMap {
 }
 
 
+/**
+ * Case class to represent an unordered VertexMap.
+ *
+ * @param map a HashMap of V -> Vertex[V, X].
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ */
 case class UnorderedVertexMap[V, X <: EdgeLike[V]](map: HashMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) {
 
     /**
@@ -85,10 +102,27 @@ case class UnorderedVertexMap[V, X <: EdgeLike[V]](map: HashMap[V, Vertex[V, X]]
     def unit(map: Map[V, Vertex[V, X]]): UnorderedVertexMap[V, X] = UnorderedVertexMap[V, X](map.to(HashMap))
 }
 
+/**
+ * Companion object to UnorderedVertexMap.
+ */
 object UnorderedVertexMap {
+    /**
+     * Method to yield an empty UnorderedVertexMap.
+     *
+     * @tparam V the (key) vertex-attribute type.
+     * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+     * @return an empty UnorderedVertexMap[V, X].
+     */
     def empty[V, X <: EdgeLike[V]]: VertexMap[V, X] = UnorderedVertexMap(HashMap.empty[V, Vertex[V, X]])
 }
 
+/**
+ * Abstract base class to define general VertexMap properties.
+ *
+ * @param _map a Map of V -> Vertex[V, X].
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ */
 abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]) extends VertexMap[V, X] {
 
     /**
@@ -107,13 +141,12 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      * @param x the edge to be added to the adjacency list.
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
-    def addEdge(v: V, x: X): VertexMap[V, X] = {
-        val z: Map[V, Vertex[V, X]] = _map.get(v) match {
-            case Some(vv) => (_map - v) + (v -> (vv addEdge x))
-            case None => _map + (v -> (Vertex.empty(v) addEdge x))
+    def addEdge(v: V, x: X): VertexMap[V, X] = unit(
+        _map.get(v) match {
+            case Some(vv) => buildMap(_map - v, v, x, vv)
+            case None => buildMap(_map, v, x, Vertex.empty(v))
         }
-        unit(z)
-    }
+    )
 
     /**
      * the vertex-type values, i.e. the keys, of this VertexMap.
@@ -137,4 +170,6 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      * @return a new VertexMap[V, X].
      */
     def unit(map: Map[V, Vertex[V, X]]): VertexMap[V, X]
+
+    private def buildMap(base: Map[V, Vertex[V, X]], v: V, x: X, vv: Vertex[V, X]) = base + (v -> (vv addEdge x))
 }
