@@ -5,7 +5,8 @@ package com.phasmidsoftware.gryphon.core
  *
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
- * @tparam X the type of edge which connects two vertices.
+ * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ *
  */
 trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] {
 
@@ -144,11 +145,11 @@ object DirectedGraph {
      * Method to construct a new empty directed graph with orderable vertex-type.
      *
      * @tparam V the (key) vertex-attribute type.
-     *           Requires evidence of Ordering[V].
+     *           Requires implicit evidence of Ordering[V].
      * @tparam E the edge-attribute type.
      * @return an empty UndirectedGraph[V, E].
      */
-    def createOrdered[V: Ordering, E]: DirectedGraph[V, E] = new DirectedGraph(OrderedVertexMap1.empty[V, BaseDirectedEdge[V, E]])
+    def createOrdered[V: Ordering, E]: DirectedGraph[V, E] = new DirectedGraph(OrderedVertexMap.empty[V, BaseDirectedEdge[V, E]])
 }
 
 
@@ -187,9 +188,9 @@ object UndirectedGraph {
      * Method to construct a new empty undirected graph with orderable vertex-type.
      *
      * @tparam V the (key) vertex-attribute type.
-     *           Requires evidence of Ordering[V].
+     *           Requires implicit evidence of Ordering[V].
      * @tparam E the edge-attribute type.
      * @return an empty UndirectedGraph[V, E].
      */
-    def createOrdered[V: Ordering, E]: UndirectedGraph[V, E] = new UndirectedGraph(OrderedVertexMap1.empty[V, BaseUndirectedEdge[V, E]])
+    def createOrdered[V: Ordering, E]: UndirectedGraph[V, E] = new UndirectedGraph(OrderedVertexMap.empty[V, BaseUndirectedEdge[V, E]])
 }

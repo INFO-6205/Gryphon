@@ -4,7 +4,7 @@ package com.phasmidsoftware.gryphon.core
  * Trait to model the behavior of a Vertex.
  *
  * @tparam V the key (attribute) type of this Vertex.
- * @tparam X the "edge" type for the adjacent edges of this Vertex.
+ * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
 trait Vertex[+V, X <: EdgeLike[V]] extends VertexLike[V] {
     /**
@@ -23,7 +23,7 @@ trait Vertex[+V, X <: EdgeLike[V]] extends VertexLike[V] {
     /**
      * The (out) degree of this Vertex.
      *
-     * @return
+     * @return the size of adjacent.
      */
     def degree: Int = adjacent.size
 }
@@ -32,7 +32,7 @@ trait Vertex[+V, X <: EdgeLike[V]] extends VertexLike[V] {
  * Abstract base class to represent an vertex.
  *
  * @tparam V the (covariant) key (attribute) type of this Vertex.
- * @tparam X the "edge" type for the adjacent edges of this Vertex.
+ * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
 abstract class AbstractVertex[+V, X <: EdgeLike[V]] extends Vertex[V, X] {
     /**
@@ -81,7 +81,7 @@ object Vertex {
      *
      * @param a (V) the (key) attribute of the result.
      * @tparam V the underlying vertex-type of the result.
-     * @tparam X the underlying edge-type of the result.
+     * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
      * @return an empty ConcreteVertex[V, X].
      */
     def empty[V, X <: EdgeLike[V]](a: V): Vertex[V, X] = ConcreteVertex[V, X](a, AdjacencyList.empty)

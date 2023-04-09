@@ -28,7 +28,7 @@ case class DirectedEdge[+V, E](from: V, to: V, attribute: E) extends BaseDirecte
  * @param attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the Edge type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[E].
+ *           Requires implicit evidence of type Ordering[E].
  */
 case class DirectedOrderedEdge[V, E: Ordering](from: V, to: V, attribute: E) extends BaseDirectedOrderedEdge[V, E](from, to, attribute)
 
@@ -39,7 +39,7 @@ case class DirectedOrderedEdge[V, E: Ordering](from: V, to: V, attribute: E) ext
  * @param v2 (V) the other vertex attribute (key).
  * @param attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[V].
+ *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
 case class UndirectedEdge[V: Ordering, E](v1: V, v2: V, attribute: E) extends BaseUndirectedEdge[V, E](v1, v2, attribute)
@@ -51,9 +51,9 @@ case class UndirectedEdge[V: Ordering, E](v1: V, v2: V, attribute: E) extends Ba
  * @param v2 (V) the other vertex attribute (key).
  * @param attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[V].
+ *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[E].
+ *           Requires implicit evidence of type Ordering[E].
  */
 case class UndirectedOrderedEdge[V: Ordering, E: Ordering](v1: V, v2: V, attribute: E) extends BaseUndirectedOrderedEdge[V, E](v1, v2, attribute)
 
@@ -64,7 +64,7 @@ case class UndirectedOrderedEdge[V: Ordering, E: Ordering](v1: V, v2: V, attribu
  * @param _v2        (V) the other vertex attribute (key).
  * @param _attribute (E) the edge attribute.
  * @tparam V the Vertex key type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[V].
+ *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
 abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute: E) extends Edge[V, E] with Undirected[V] {
@@ -125,9 +125,9 @@ abstract class BaseDirectedEdge[+V, +E](val _from: V, val _to: V, val _attribute
  * @param _v2        (V) the other vertex attribute (key).
  * @param _attribute (E) the edge attribute.
  * @tparam V the Vertex key type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[V].
+ *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[E].
+ *           Requires implicit evidence of type Ordering[E].
  */
 abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: V, override val _attribute: E) extends BaseUndirectedEdge[V, E](_v1, _v2, _attribute) with Ordered[Edge[V, E]] {
 
@@ -149,7 +149,7 @@ abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: 
  * @param _attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the Edge type, i.e. the type of its attribute.
- *           Needs evidence of Ordering[E].
+ *           Requires implicit evidence of type Ordering[E].
  */
 abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, override val _to: V, override val _attribute: E) extends BaseDirectedEdge[V, E](_from, _to, _attribute) with Ordered[Edge[V, E]] {
 
@@ -254,7 +254,9 @@ object BaseOrderedEdge {
      *
      * @param x an edge to be compared.
      * @param y the other edge to be compared.
-     *          @tparam V the vertex type
+     * @tparam V the vertex type
+     * @tparam E the edge-type.
+     *           Requires implicit evidence of type Ordering[E].
      */
     def compare[V, E: Ordering](x: Edge[V, E], y: Edge[V, E]): Int = implicitly[Ordering[E]].compare(x.attribute, y.attribute)
 
