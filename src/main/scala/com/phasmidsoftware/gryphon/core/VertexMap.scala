@@ -20,6 +20,11 @@ trait VertexMap[V, X <: EdgeLike[V]] {
     val values: Iterable[Vertex[V, X]]
 
     /**
+     * the X values of this VertexMap.
+     */
+    val edges: Iterable[X]
+
+    /**
      * Method to add a vertex to this VertexMap.
      *
      * @param v the (key) value of the vertex to be added.
@@ -119,6 +124,11 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      * the Vertex[V, X] values of this VertexMap.
      */
     val values: Iterable[Vertex[V, X]] = _map.values
+
+    /**
+     * the X values of this VertexMap.
+     */
+    val edges: Iterable[X] = _map.values.flatMap(_.adjacent.xs)
 
     /**
      * (abstract) Method to construct a new VertexMap from the given map.
