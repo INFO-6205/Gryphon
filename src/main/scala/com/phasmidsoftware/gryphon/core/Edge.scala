@@ -137,7 +137,7 @@ abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: 
      * @param that another edge.
      * @return -1, 0, or 1 depending on the ordering of this and that edges.
      */
-    def compare(that: Edge[V, E]): Int = BaseOrderedEdge.compare(this, that)
+    def compare(that: Edge[V, E]): Int = OrderedEdge.compare(this, that)
 }
 
 /**
@@ -159,7 +159,7 @@ abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, ov
      * @param that another edge.
      * @return -1, 0, or 1 depending on the ordering of this and that edges.
      */
-    def compare(that: Edge[V, E]): Int = BaseOrderedEdge.compare(this, that)
+    def compare(that: Edge[V, E]): Int = OrderedEdge.compare(this, that)
 }
 
 /**
@@ -248,7 +248,7 @@ trait Undirected[V] extends EdgeLike[V] {
 /**
  * Object to provide non-instance methods for an ordered edge.
  */
-object BaseOrderedEdge {
+object OrderedEdge {
     /**
      * Method to return an Int whose sign communicates how edge x compares to edge y.
      *
