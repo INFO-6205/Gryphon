@@ -36,7 +36,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         val target = graph.addEdge(edge)
         target.vertices shouldBe Set(vertexA, vertexB)
         target.vertices.size shouldBe 2
-//        target.edgeAttributes.headOption shouldBe Some(red)
+        target.edgeAttributes.headOption shouldBe Some(red)
     }
 
     behavior of "DirectedGraph"

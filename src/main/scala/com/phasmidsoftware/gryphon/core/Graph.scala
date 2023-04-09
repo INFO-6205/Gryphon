@@ -32,7 +32,7 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] {
     /**
      * Yield an iterable of edge attributes.
      */
-//    val edgeAttributes: Iterable[E] = edges.map(_.attribute)
+    lazy val edgeAttributes: Iterable[E] = edges.map(_.attribute)
 
     /**
      * (abstract) Method to create a new Graph which includes the given edge.
