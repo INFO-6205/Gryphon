@@ -71,12 +71,28 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         a1 shouldBe Some(Queue(1))
     }
 
-    it should "join" in {
+    it should "join 1" in {
         val preVisitor: PreVisitor[Int, Queue[Int]] = PreVisitor()
         val postVisitor: PostVisitor[Int, Queue[Int]] = PostVisitor()
         val target: Visitor[Int, Queue[Int]] = preVisitor join postVisitor
         val z: Visitor[Int, Queue[Int]] = target.visitPre(1)
         z.appendable shouldBe Queue(1)
+    }
+
+    it should "join 2" in {
+        val preVisitor: PreVisitor[Int, List[Int]] = PreVisitor()
+        val postVisitor = PostVisitor.reverse
+        val target: Visitor[Int, List[Int]] = preVisitor join postVisitor
+        val z1: Visitor[Int, List[Int]] = target.visitPre(1)
+        val z2: Visitor[Int, List[Int]] = z1.visitPost(2)
+        z2.appendable shouldBe List(2, 1)
+    }
+
+    it should "join 3" in {
+        val target: Visitor[Int, List[Int]] = Visitor.preAndPost[Int]
+        val z1: Visitor[Int, List[Int]] = target.visitPre(1)
+        val z2: Visitor[Int, List[Int]] = z1.visitPost(2)
+        z2.appendable shouldBe List(2, 1)
     }
 
     it should "postFunc" in {

@@ -43,6 +43,15 @@ trait Visitor[V, A] {
     val appendable: A
 }
 
+object Visitor {
+    /**
+     * Method to create a composed pre- and post-visitor.
+     *
+     * @tparam V the vertex type.
+     * @return a Visitor[V, List of V].
+     */
+    def preAndPost[V](implicit ev: Appendable[List[V], V]): Visitor[V, List[V]] = PreVisitor[V, List[V]]() join PostVisitor()
+}
 case class PreVisitor[V, A](appendable: A)(implicit val ev: Appendable[A, V]) extends BaseVisitor[V, A](appendable) {
 
     val preFunc: V => A => Option[A] = v => a => Some(ev.append(a, v))
@@ -112,6 +121,15 @@ abstract class BaseVisitor[V, A](appendable: A)(implicit val ava: Appendable[A, 
 
     def unit(appendable: A): Visitor[V, A]
 
+    /**
+     * Method to compose two Visitors into one.
+     *
+     * NOTE that the types (V, A) of the other visitor MUST be consistent with the types of this visitor.
+     * See VisitorSpec to see how you might work around this limitation.
+     *
+     * @param visitor a Visitor[V, A].
+     * @return a new GenericVisitor[V, A].
+     */
     def join(visitor: Visitor[V, A]): Visitor[V, A] =
         new GenericVisitor[V, A](v => a => joinFunc(a, self.preFunc(v), visitor.preFunc(v)), v => a => joinFunc(a, self.postFunc(v), visitor.postFunc(v)))(self.appendable)
 
