@@ -9,7 +9,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     behavior of "Visitor"
 
     it should "PostVisitor" in {
-        val target: PostVisitor[Int] = PostVisitor()
+        val target: PostVisitor[Int, Queue[Int]] = PostVisitor()
         val queue = Queue.empty[Int]
         val f: Int => Queue[Int] => Option[Queue[Int]] = target.preFunc
         val a1: Option[Queue[Int]] = f(1)(queue)
@@ -20,7 +20,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "PreVisitor" in {
-        val target: PreVisitor[Int] = PreVisitor()
+        val target: PreVisitor[Int, Queue[Int]] = PreVisitor()
         val queue = Queue.empty[Int]
         val f: Int => Queue[Int] => Option[Queue[Int]] = target.preFunc
         val a1: Option[Queue[Int]] = f(1)(queue)
@@ -31,7 +31,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "preFunc" in {
-        val target: PreVisitor[Int] = PreVisitor()
+        val target: PreVisitor[Int, Queue[Int]] = PreVisitor()
         val f: Int => Queue[Int] => Option[Queue[Int]] = target.preFunc
         val queue = Queue.empty[Int]
         val a1: Option[Queue[Int]] = f(1)(queue)
@@ -48,7 +48,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
 //    }
 
     it should "postFunc" in {
-        val target: PostVisitor[Int] = PostVisitor()
+        val target: PostVisitor[Int, Queue[Int]] = PostVisitor()
         val f: Int => Queue[Int] => Option[Queue[Int]] = target.postFunc
         val queue = Queue.empty[Int]
         val a1: Option[Queue[Int]] = f(1)(queue)

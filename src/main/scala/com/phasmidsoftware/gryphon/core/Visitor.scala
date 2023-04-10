@@ -1,13 +1,13 @@
 package com.phasmidsoftware.gryphon.core
 
-import scala.collection.immutable.{AbstractSeq, Queue}
+import scala.collection.immutable.Queue
 
 /**
  * Trait to define the behavior of a visitor--used during depth-first-search, etc.
  *
  * @tparam V the (key) attribute type of a vertex.
  */
-trait Visitor[V, A <: AbstractSeq[V]] {
+trait Visitor[V, A] {
 
     self =>
 
@@ -34,36 +34,35 @@ trait Visitor[V, A <: AbstractSeq[V]] {
     def visitPost(v: V): Visitor[V, A]
 }
 
-case class PreVisitor[V](appendable: Queue[V]) extends BaseVisitor[V, Queue[V]](appendable) {
+case class PreVisitor[V, A](appendable: A)(implicit val ev: Appendable[A, V]) extends BaseVisitor[V, A](appendable) {
 
-    val preFunc: V => Queue[V] => Option[Queue[V]] = v => a => Some(a.appended(v))
-    val postFunc: V => Queue[V] => Option[Queue[V]] = _ => _ => None
+    val preFunc: V => A => Option[A] = v => a => Some(ev.append(a, v))
+    val postFunc: V => A => Option[A] = _ => _ => None
 
-    def unit(a: Queue[V]): Visitor[V, Queue[V]] = PreVisitor(a)
+    def unit(a: A): Visitor[V, A] = PreVisitor(a)
 }
 
 
 object PreVisitor {
-    def apply[V](): PreVisitor[V] = new PreVisitor(Queue.empty)
+    def apply[V, A]()(implicit ev: Appendable[A, V]): PreVisitor[V, A] = new PreVisitor(ev.empty)
 }
 
 
-case class PostVisitor[V](appendable: Queue[V]) extends BaseVisitor[V, Queue[V]](appendable) {
+case class PostVisitor[V, A](appendable: A)(implicit val ev: Appendable[A, V]) extends BaseVisitor[V, A](appendable) {
 
-    val postFunc: V => Queue[V] => Option[Queue[V]] = v => a => Some(a.appended(v))
-    val preFunc: V => Queue[V] => Option[Queue[V]] = _ => _ => None
+    val postFunc: V => A => Option[A] = v => a => Some(ev.append(a, v))
+    val preFunc: V => A => Option[A] = _ => _ => None
 
-    def unit(a: Queue[V]): Visitor[V, Queue[V]] = PostVisitor(a)
+    def unit(a: A): Visitor[V, A] = PostVisitor(a)
 
 }
 
 object PostVisitor {
-    def apply[V](): PostVisitor[V] = new PostVisitor(Queue.empty)
+    def apply[V, A]()(implicit ev: Appendable[A, V]): PostVisitor[V, A] = new PostVisitor(ev.empty)
 }
 
-abstract class BaseVisitor[V, A <: AbstractSeq[V]](appendable: A) extends Visitor[V, A] {
+abstract class BaseVisitor[V, A](appendable: A)(implicit val ava: Appendable[A, V]) extends Visitor[V, A] {
     self =>
-
 
     /**
      * Method to visit before processing the (child) V values.
