@@ -45,8 +45,12 @@ case class PreVisitor[V, A](appendable: A)(implicit val ev: Appendable[A, V]) ex
 
 object PreVisitor {
     def apply[V, A]()(implicit ev: Appendable[A, V]): PreVisitor[V, A] = new PreVisitor(ev.empty)
-}
 
+    def create[V](implicit ev: Appendable[Queue[V], V]): PreVisitor[V, Queue[V]] = PreVisitor[V, Queue[V]]()
+
+    def reverse[V](implicit ev: Appendable[List[V], V]): PreVisitor[V, List[V]] = new PreVisitor(ev.empty)
+
+}
 
 case class PostVisitor[V, A](appendable: A)(implicit val ev: Appendable[A, V]) extends BaseVisitor[V, A](appendable) {
 
@@ -54,11 +58,14 @@ case class PostVisitor[V, A](appendable: A)(implicit val ev: Appendable[A, V]) e
     val preFunc: V => A => Option[A] = _ => _ => None
 
     def unit(a: A): Visitor[V, A] = PostVisitor(a)
-
 }
 
 object PostVisitor {
     def apply[V, A]()(implicit ev: Appendable[A, V]): PostVisitor[V, A] = new PostVisitor(ev.empty)
+
+    def create[V](implicit ev: Appendable[Queue[V], V]): PostVisitor[V, Queue[V]] = PostVisitor[V, Queue[V]]()
+
+    def reverse[V](implicit ev: Appendable[List[V], V]): PostVisitor[V, List[V]] = new PostVisitor(ev.empty)
 }
 
 abstract class BaseVisitor[V, A](appendable: A)(implicit val ava: Appendable[A, V]) extends Visitor[V, A] {
@@ -117,7 +124,7 @@ trait AppendableStack[V] extends Appendable[List[V], V] {
 
 //    def combine(other: Queue[V]): Appendable[Queue[V], V] = ???
 
-    def append(q: List[V], v: V): List[V] = q :+ v
+    def append(q: List[V], v: V): List[V] = v :: q
 }
 
 object Appendable {

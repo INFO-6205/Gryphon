@@ -10,31 +10,41 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
 
     it should "PostVisitor" in {
         val target: PostVisitor[Int, Queue[Int]] = PostVisitor()
+        val t1 = target.visitPost(1)
+        t1 shouldBe PostVisitor(Queue(1))
         val queue = Queue.empty[Int]
-        val f: Int => Queue[Int] => Option[Queue[Int]] = target.preFunc
-        val a1: Option[Queue[Int]] = f(1)(queue)
+        val a1: Option[Queue[Int]] = target.preFunc(1)(queue)
         a1 shouldBe None
-        val g: Int => Queue[Int] => Option[Queue[Int]] = target.postFunc
-        val a2: Option[Queue[Int]] = g(1)(queue)
+        val a2: Option[Queue[Int]] = target.postFunc(1)(queue)
         a2 shouldBe Some(Queue(1))
+        val a3: Option[Queue[Int]] = target.postFunc(2)(a2.get)
+        a3 shouldBe Some(Queue(1, 2))
     }
 
     it should "PreVisitor" in {
         val target: PreVisitor[Int, Queue[Int]] = PreVisitor()
         val queue = Queue.empty[Int]
-        val f: Int => Queue[Int] => Option[Queue[Int]] = target.preFunc
-        val a1: Option[Queue[Int]] = f(1)(queue)
+        val a1: Option[Queue[Int]] = target.preFunc(1)(queue)
         a1 shouldBe Some(Queue(1))
-        val g: Int => Queue[Int] => Option[Queue[Int]] = target.postFunc
-        val a2: Option[Queue[Int]] = g(1)(queue)
+        val a2: Option[Queue[Int]] = target.postFunc(1)(queue)
         a2 shouldBe None
+        val a3: Option[Queue[Int]] = target.preFunc(2)(a1.get)
+        a3 shouldBe Some(Queue(1, 2))
+    }
+
+    it should "PostVisitor.reverse" in {
+        val target: PostVisitor[Int, List[Int]] = PostVisitor.reverse
+        target.visitPre(1) shouldBe target
+        val t1 = target.visitPost(1)
+        t1 shouldBe PostVisitor(List(1))
+        val t2 = t1.visitPost(2)
+        t2 shouldBe PostVisitor(List(2, 1))
     }
 
     it should "preFunc" in {
         val target: PreVisitor[Int, Queue[Int]] = PreVisitor()
-        val f: Int => Queue[Int] => Option[Queue[Int]] = target.preFunc
         val queue = Queue.empty[Int]
-        val a1: Option[Queue[Int]] = f(1)(queue)
+        val a1: Option[Queue[Int]] = target.preFunc(1)(queue)
         a1 shouldBe Some(Queue(1))
     }
 
@@ -49,9 +59,8 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
 
     it should "postFunc" in {
         val target: PostVisitor[Int, Queue[Int]] = PostVisitor()
-        val f: Int => Queue[Int] => Option[Queue[Int]] = target.postFunc
         val queue = Queue.empty[Int]
-        val a1: Option[Queue[Int]] = f(1)(queue)
+        val a1: Option[Queue[Int]] = target.postFunc(1)(queue)
         a1 shouldBe Some(Queue(1))
     }
 
