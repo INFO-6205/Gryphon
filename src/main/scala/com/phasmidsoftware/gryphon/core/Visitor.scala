@@ -9,16 +9,8 @@ import scala.collection.immutable.Queue
  */
 trait Visitor[V, A] {
 
-    self =>
-
-    val preFunc: V => A => Option[A]
-
-    val postFunc: V => A => Option[A]
-
-    val appendable: A
-
     /**
-     * Method to visit before processing the (child) V values.
+     * Method to visit BEFORE processing the (child) V values.
      *
      * @param v (V) the value of this node (vertex).
      * @return an updated Visitor[V}.
@@ -26,12 +18,29 @@ trait Visitor[V, A] {
     def visitPre(v: V): Visitor[V, A]
 
     /**
-     * Method to visit after processing the (child) V values.
+     * Method to visit AFTER processing the (child) V values.
      *
      * @param v (V) the value of this node (vertex).
      * @return an updated Visitor[V].
      */
     def visitPost(v: V): Visitor[V, A]
+
+    /**
+     * Function to process a vertex in pre-order.
+     * NOTE This function is not intended for application usage.
+     */
+    val preFunc: V => A => Option[A]
+
+    /**
+     * Function to process a vertex in post-order.
+     * NOTE This function is not intended for application usage.
+     */
+    val postFunc: V => A => Option[A]
+
+    /**
+     * The record of all of the pre- and post- invocations.
+     */
+    val appendable: A
 }
 
 case class PreVisitor[V, A](appendable: A)(implicit val ev: Appendable[A, V]) extends BaseVisitor[V, A](appendable) {
@@ -68,6 +77,20 @@ object PostVisitor {
     def reverse[V](implicit ev: Appendable[List[V], V]): PostVisitor[V, List[V]] = new PostVisitor(ev.empty)
 }
 
+/**
+ * Concrete Visitor which is defined by its provided pre and post functions.
+ *
+ * @param preFunc    the function to be invoked in pre-order.
+ * @param postFunc   the function to be invoked in post-order.
+ * @param appendable the appendable structure.
+ * @tparam V the (key) vertex-type.
+ * @tparam A the Appendable type.
+ *           Requires implicit evidence of Appendable[A, V].
+ */
+class GenericVisitor[V, A](val preFunc: V => A => Option[A], val postFunc: V => A => Option[A])(val appendable: A)(implicit val ev: Appendable[A, V]) extends BaseVisitor[V, A](appendable) {
+    def unit(a: A): Visitor[V, A] = new GenericVisitor(preFunc, postFunc)(a)
+}
+
 abstract class BaseVisitor[V, A](appendable: A)(implicit val ava: Appendable[A, V]) extends Visitor[V, A] {
     self =>
 
@@ -89,15 +112,11 @@ abstract class BaseVisitor[V, A](appendable: A)(implicit val ava: Appendable[A, 
 
     def unit(appendable: A): Visitor[V, A]
 
-//    def join(visitor: Visitor[V, A]): Visitor[V, A] = new BaseVisitor[V, A](self.appendable) {
-//        val preFunc: V => A => Option[A] = v => a => joinFunc(a, self.preFunc(v), visitor.preFunc(v))
-//        val postFunc: V => A => Option[A] = v => a => joinFunc(a, self.postFunc(v), visitor.postFunc(v))
-//
-//        def unit(a: A): Visitor[V, A] = self.unit(a)
-//    }
+    def join(visitor: Visitor[V, A]): Visitor[V, A] =
+        new GenericVisitor[V, A](v => a => joinFunc(a, self.preFunc(v), visitor.preFunc(v)), v => a => joinFunc(a, self.postFunc(v), visitor.postFunc(v)))(self.appendable)
 
     private def joinFunc(a: A, f1: A => Option[A], f2: A => Option[A]) = f1(a) match {
-        case Some(b) => f2(b)
+        case x@Some(b) => f2(b) orElse x
         case None => f2(a)
     }
 }
