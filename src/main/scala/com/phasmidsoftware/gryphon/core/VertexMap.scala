@@ -46,6 +46,11 @@ trait VertexMap[V, X <: EdgeLike[V]] {
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
     def addEdge(v: V, x: X): VertexMap[V, X]
+//
+//    def dfs[A](visitor: Visitor[V,A])(a: A) = {
+//        val es = edges
+//        es.reduceLeft()
+//    }
 }
 
 /**
