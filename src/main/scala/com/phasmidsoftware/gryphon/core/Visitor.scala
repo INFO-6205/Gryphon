@@ -1,6 +1,5 @@
 package com.phasmidsoftware.gryphon.core
 
-import java.io.FileWriter
 import scala.collection.immutable.Queue
 
 /**
@@ -12,7 +11,7 @@ import scala.collection.immutable.Queue
  * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal for this visitor.
  */
-trait Visitor[V, J] {
+trait Visitor[V, J] extends AutoCloseable {
 
     /**
      * Method to visit BEFORE processing the (child) V values.
@@ -46,6 +45,8 @@ trait Visitor[V, J] {
      * The journal of all of the pre- and post- invocations.
      */
     val journal: J
+
+    def close(): Unit
 }
 
 /**
@@ -308,6 +309,11 @@ abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) ex
     protected def doNothing: V => J => Option[J] = _ => _ => None
 
     def unit(journal: J): Visitor[V, J]
+
+    def close(): Unit = journal match {
+        case x: AutoCloseable => x.close()
+        case _ =>
+    }
 
     /**
      * Method to compose two Visitors into one.

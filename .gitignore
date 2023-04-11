@@ -2,5 +2,5 @@
 .bsp/
 project/target/
 target/
-output.txt
+FileWriterJournal.txt
 test.txt

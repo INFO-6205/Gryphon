@@ -66,7 +66,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     it should "visitPre twice to FileWriter" in {
         val target: PreVisitor[Int, FileWriter] = PreVisitor()
         val t2 = target.visitPre(1)
-        t2.visitPre(2)
+        t2.visitPre(2).close()
     }
 
     it should "visitPre twice to named FileWriter" in {
