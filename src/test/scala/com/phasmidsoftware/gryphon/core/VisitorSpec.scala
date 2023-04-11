@@ -19,7 +19,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "implement create and journal" in {
-        val target = PostVisitor.create
+        val target = PostVisitor.create[Int]
         target.visitPre(1) shouldBe target
         val t1 = target.visitPost(1)
         t1.journal shouldBe Seq(1)
@@ -47,7 +47,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "implement create and journal" in {
-        val target = PreVisitor.create
+        val target = PreVisitor.create[Int]
         val t1 = target.visitPre(1)
         t1.journal shouldBe Seq(1)
         val t2 = t1.visitPre(2)

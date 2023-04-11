@@ -144,21 +144,14 @@ abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) ex
     }
 }
 
-abstract class BaseIterableVisitor[V, J <: Iterable[V]](appendable: J)(implicit val avai: IterableJournal[J, V]) extends BaseVisitor[V, J](appendable) {
+abstract class BaseIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val avai: IterableJournal[J, V]) extends BaseVisitor[V, J](journal) {
     self =>
 
-    def iterator: Iterator[V] = avai.iterator(appendable)
-
-    def unit(journal: J): Visitor[V, J]
-
-    private def joinFunc(a: J, f1: J => Option[J], f2: J => Option[J]) = f1(a) match {
-        case x@Some(b) => f2(b) orElse x
-        case None => f2(a)
-    }
+    def iterator: Iterator[V] = avai.iterator(journal)
 }
 
 trait HasIterator[J <: Iterable[V], V] {
-    def iterator(a: J): Iterator[V] = a.iterator
+    def iterator(journal: J): Iterator[V] = journal.iterator
 }
 
 /**
@@ -210,4 +203,6 @@ object Journal {
     implicit object JournalQueueInt$ extends JournalQueue[Int]
 
     implicit object JournalStackInt$ extends JournalStack[Int]
+
+    implicit object JournalQueueString$ extends JournalQueue[String]
 }

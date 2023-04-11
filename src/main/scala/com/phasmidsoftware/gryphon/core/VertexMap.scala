@@ -63,7 +63,7 @@ trait VertexMap[V, X <: EdgeLike[V]] {
                     (b, x) =>
                         x.other(v) match {
                             case Some(z) => dfs(b)(z)
-                            case None => throw GraphException(s"Logic error 1: dfs($v): x+$x")
+                            case None => throw GraphException(s"Logic error 1: dfs($v): x: $x")
                         }
                 }
         }
