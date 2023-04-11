@@ -47,7 +47,20 @@ trait Visitor[V, J] {
     val journal: J
 }
 
+/**
+ * Companion object of Visitor case class.
+ * Contains factory methods to create various types of Visitor.
+ */
 object Visitor {
+
+    def createPre[V](implicit ev: Journal[Queue[V], V]): PreVisitor[V, Queue[V]] = PreVisitor[V, Queue[V]]()
+
+    def reversePre[V](implicit ev: Journal[List[V], V]): PreVisitor[V, List[V]] = PreVisitor(ev.empty)
+
+    def createPost[V](implicit ev: Journal[Queue[V], V]): PostVisitor[V, Queue[V]] = PostVisitor[V, Queue[V]]()
+
+    def reversePost[V](implicit ev: Journal[List[V], V]): PostVisitor[V, List[V]] = PostVisitor(ev.empty)
+
     /**
      * Method to create a composed pre- and post-visitor.
      *
@@ -59,36 +72,26 @@ object Visitor {
 
 case class PreVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends BaseVisitor[V, J](journal) {
 
-    val preFunc: V => J => Option[J] = v => a => Some(ev.append(a, v))
-    val postFunc: V => J => Option[J] = _ => _ => None
+    val preFunc = appendToJournal
+    val postFunc = doNothing
 
     def unit(journal: J): Visitor[V, J] = PreVisitor(journal)
 }
 
-
 object PreVisitor {
     def apply[V, J]()(implicit ev: Journal[J, V]): PreVisitor[V, J] = new PreVisitor(ev.empty)
-
-    def create[V](implicit ev: Journal[Queue[V], V]): PreVisitor[V, Queue[V]] = PreVisitor[V, Queue[V]]()
-
-    def reverse[V](implicit ev: Journal[List[V], V]): PreVisitor[V, List[V]] = new PreVisitor(ev.empty)
-
 }
 
 case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends BaseVisitor[V, J](journal) {
 
-    val postFunc: V => J => Option[J] = v => a => Some(ev.append(a, v))
-    val preFunc: V => J => Option[J] = _ => _ => None
+    val preFunc = doNothing
+    val postFunc = appendToJournal
 
     def unit(journal: J): Visitor[V, J] = PostVisitor(journal)
 }
 
 object PostVisitor {
     def apply[V, J]()(implicit ev: Journal[J, V]): PostVisitor[V, J] = new PostVisitor(ev.empty)
-
-    def create[V](implicit ev: Journal[Queue[V], V]): PostVisitor[V, Queue[V]] = PostVisitor[V, Queue[V]]()
-
-    def reverse[V](implicit ev: Journal[List[V], V]): PostVisitor[V, List[V]] = new PostVisitor(ev.empty)
 }
 
 /**
@@ -123,6 +126,10 @@ abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) ex
      * @return an updated Visitor[V].
      */
     def visitPost(v: V): Visitor[V, J] = unit(postFunc(v)(journal) getOrElse journal)
+
+    protected def appendToJournal(implicit ev: Journal[J, V]): V => J => Option[J] = v => a => Some(ev.append(a, v))
+
+    protected def doNothing: V => J => Option[J] = _ => _ => None
 
     def unit(journal: J): Visitor[V, J]
 
