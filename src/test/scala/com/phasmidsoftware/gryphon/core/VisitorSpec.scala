@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
+import java.io.FileWriter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.collection.immutable.Queue
@@ -16,6 +17,14 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         t2 shouldBe t1
         val t3 = t2.visitPost(2)
         t3 shouldBe PostVisitor(Queue(1, 2))
+    }
+
+    it should "visitPre twice to StringBuilder" in {
+        val target: PostVisitor[Int, StringBuilder] = PostVisitor()
+        val t2 = target.visitPost(1)
+        t2.journal.toString() shouldBe "1\n"
+        val t3 = t2.visitPost(2)
+        t3.journal.toString() shouldBe "1\n2\n"
     }
 
     it should "implement visitPost twice and journal" in {
@@ -44,6 +53,28 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         t2 shouldBe PreVisitor(Queue(1))
         val t3 = t2.visitPre(2)
         t3 shouldBe PreVisitor(Queue(1, 2))
+    }
+
+    it should "visitPre twice to StringBuilder" in {
+        val target: PreVisitor[Int, StringBuilder] = PreVisitor()
+        val t2 = target.visitPre(1)
+        t2.journal.toString() shouldBe "1\n"
+        val t3 = t2.visitPre(2)
+        t3.journal.toString() shouldBe "1\n2\n"
+    }
+
+    it should "visitPre twice to FileWriter" in {
+        val target: PreVisitor[Int, FileWriter] = PreVisitor()
+        val t2 = target.visitPre(1)
+        t2.visitPre(2)
+    }
+
+    it should "visitPre twice to named FileWriter" in {
+        val journal = new FileWriter("test.txt")
+        val target: PreVisitor[Int, FileWriter] = PreVisitor(journal)
+        val t2 = target.visitPre(1)
+        val t3 = t2.visitPre(2)
+        t3.journal.close()
     }
 
     it should "implement visitPre twice and journal" in {

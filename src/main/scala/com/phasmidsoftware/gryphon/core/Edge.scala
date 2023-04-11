@@ -233,7 +233,6 @@ trait EdgeLike[V] {
      * @return an optional vertex key.
      */
     def other(v: V): Option[V]
-
 }
 
 /**

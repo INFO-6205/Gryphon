@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
+import java.io.FileWriter
 import scala.collection.immutable.Queue
 
 /**
@@ -152,8 +153,8 @@ object Visitor {
  */
 case class PreVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends BaseVisitor[V, J](journal) {
 
-    val preFunc = appendToJournal
-    val postFunc = doNothing
+    val preFunc: V => J => Option[J] = appendToJournal
+    val postFunc: V => J => Option[J] = doNothing
 
     def unit(journal: J): Visitor[V, J] = PreVisitor(journal)
 }
@@ -175,8 +176,8 @@ object PreVisitor {
  */
 case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends BaseVisitor[V, J](journal) {
 
-    val preFunc = doNothing
-    val postFunc = appendToJournal
+    val preFunc: V => J => Option[J] = doNothing
+    val postFunc: V => J => Option[J] = appendToJournal
 
     def unit(journal: J): Visitor[V, J] = PostVisitor(journal)
 }
@@ -198,8 +199,8 @@ object PostVisitor {
  */
 case class PreVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends BaseIterableVisitor[V, J](journal) {
 
-    val preFunc = appendToJournal
-    val postFunc = doNothing
+    val preFunc: V => J => Option[J] = appendToJournal
+    val postFunc: V => J => Option[J] = doNothing
 
     def unit(journal: J): Visitor[V, J] = PreVisitorIterable(journal)
 }
@@ -221,8 +222,8 @@ object PreVisitorIterable {
  */
 case class PostVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends BaseIterableVisitor[V, J](journal) {
 
-    val preFunc = doNothing
-    val postFunc = appendToJournal
+    val preFunc: V => J => Option[J] = doNothing
+    val postFunc: V => J => Option[J] = appendToJournal
 
     def unit(journal: J): Visitor[V, J] = PostVisitorIterable(journal)
 }
@@ -373,7 +374,7 @@ trait Journal[J, V] {
     /**
      * An empty journal.
      */
-    val empty: J
+    def empty: J
 
     /**
      * Method to append a V value to a journal.
@@ -406,6 +407,22 @@ trait IterableJournalStack[V] extends IterableJournal[List[V], V] {
 }
 
 object Journal {
+    implicit object StringBuilderJournalInt$$ extends Journal[StringBuilder, Int] {
+        def empty: StringBuilder = new StringBuilder()
+
+        def append(j: StringBuilder, v: Int): StringBuilder = j.append(s"$v\n")
+    }
+
+    implicit object FileWriterJournalInt$$ extends Journal[FileWriter, Int] {
+        /**
+         * This method is used only when no explicit Journal is defined for a Visitor[FileWriter, Int].
+         * @return a new FileWriter based on the file called "output.txt".
+         */
+        def empty: FileWriter = new FileWriter("output.txt")
+
+        def append(j: FileWriter, v: Int): FileWriter = { j.append(s"$v\n"); j }
+    }
+
     implicit object IterableJournalQueueInt$$ extends IterableJournalQueue[Int]
 
     implicit object IterableJournalStackInt$$ extends IterableJournalStack[Int]
