@@ -25,5 +25,4 @@ class VertexSpec extends AnyFlatSpec with should.Matchers {
         val a = Vertex.empty[String, DirectedEdge[String, String]]("A")
         a.addEdge(DirectedEdge("A", "B", "ab")) shouldBe new ConcreteVertex("A", AdjacencyList(Seq(DirectedEdge("A", "B", "ab")))) // leave "new" intact.
     }
-
 }

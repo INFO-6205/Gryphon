@@ -3,21 +3,21 @@ package com.phasmidsoftware.gryphon.core
 /**
  * Trait to model the behavior of an Edge.
  *
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-trait Edge[+V, +E] extends EdgeLike[V] with Attributed[E]
+trait Edge[V, +E] extends EdgeLike[V] with Attributed[E]
 
 /**
  * Class to represent a directed edge from <code>from</code> to <code>to</code>.
  *
- * @param from (V) start vertex attribute (key).
- * @param to (V) the end vertex attribute (key).
+ * @param from      (V) start vertex attribute (key).
+ * @param to        (V) the end vertex attribute (key).
  * @param attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
-case class DirectedEdge[+V, E](from: V, to: V, attribute: E) extends BaseDirectedEdge[V, E](from, to, attribute)
+case class DirectedEdge[V, E](from: V, to: V, attribute: E) extends BaseDirectedEdge[V, E](from, to, attribute)
 
 /**
  * Class to represent a directed, ordered edge from <code>from</code> to <code>to</code>.
@@ -105,14 +105,23 @@ abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute
  * @param _from      (V) the start vertex attribute (key).
  * @param _to        (V) the end vertex attribute (key).
  * @param _attribute (E) the edge attribute.
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-abstract class BaseDirectedEdge[+V, +E](val _from: V, val _to: V, val _attribute: E) extends Edge[V, E] with Directed[V] {
+abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute: E) extends Edge[V, E] with Directed[V] {
     /**
      * The two vertices in the natural order: _from, _to.
      */
     val vertices: (V, V) = _from -> _to
+
+    /**
+     * Method to return the "to"" end of this directed edge provided that the given vertex
+     * is is the same as _from (in which case None) will be returned.
+     *
+     * @param v (V) the given vertex key (attribute).
+     * @return an optional vertex key.
+     */
+    def other(v: V): Option[V] = Option.when(v == _from)(_to)
 
     override def toString: String = s"${_from}--(${_attribute})-->${_to}"
 }
@@ -167,9 +176,9 @@ abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, ov
  *
  * @param v1 a vertex.
  * @param v2 another vertex.
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
  */
-case class VertexPair[+V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2)
+case class VertexPair[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2)
 
 /**
  * Abstract base class to represent a connection between a pair of vertices that are not connected by an explicit edge object.
@@ -177,9 +186,9 @@ case class VertexPair[+V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2)
  *
  * @param _v1 one of the vertices.
  * @param _v2 the other vertex.
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
  */
-abstract class BaseVertexPair[+V](_v1: V, _v2: V) extends Edge[V, Unit] {
+abstract class BaseVertexPair[V](_v1: V, _v2: V) extends Edge[V, Unit] {
     /**
      * @return ().
      */
@@ -190,28 +199,49 @@ abstract class BaseVertexPair[+V](_v1: V, _v2: V) extends Edge[V, Unit] {
      */
     val vertices: (V, V) = _v1 -> _v2
 
+    /**
+     * Method to return the other end of this edge from the given vertex <code>v</code>.
+     * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
+     *
+     * CONSIDER merging this class with BaseUndirectedEdge.
+     *
+     * @param v (V) the given vertex key (attribute).
+     * @return an optional vertex key.
+     */
+    def other(v: V): Option[V] = Option.when(v == _v1)(_v2) orElse Option.when(v == _v2)(_v1)
+
     override def toString: String = s"${_v1}:${_v2}"
 }
 
 /**
  * Trait to model the behavior of an edge-like object, that's to say something with two vertices of type <code>V</code>.
  *
- * @tparam V the (covariant) Vertex key type.
+ * @tparam V the Vertex key type.
  */
-trait EdgeLike[+V] {
+trait EdgeLike[V] {
 
     /**
      * The two vertices of this Edge in a (possibly) arbitrary but deterministic order.
      */
     val vertices: (V, V)
+
+    /**
+     * Method to return the other end of this undirected edge from the given vertex <code>v</code>.
+     * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
+     *
+     * @param v (V) the given vertex key (attribute).
+     * @return an optional vertex key.
+     */
+    def other(v: V): Option[V]
+
 }
 
 /**
  * Trait to define the behavior of an EdgeLike object which is directed.
  *
- * @tparam V the (covariant) Vertex key type.
+ * @tparam V the Vertex key type.
  */
-trait Directed[+V] extends EdgeLike[V] {
+trait Directed[V] extends EdgeLike[V] {
     /**
      * @return (V) start vertex attribute (key).
      */
@@ -234,15 +264,6 @@ trait Undirected[V] extends EdgeLike[V] {
      * This method is deterministic thus always gives the same result for a particular edge.
      */
     val vertex: V
-
-    /**
-     * Method to return the other end of this undirected edge from the given vertex <code>v</code>.
-     * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
-     *
-     * @param v (V) the given vertex key (attribute).
-     * @return an optional vertex key.
-     */
-    def other(v: V): Option[V]
 }
 
 /**

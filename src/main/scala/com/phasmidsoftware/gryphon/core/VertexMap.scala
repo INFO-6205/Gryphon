@@ -16,6 +16,14 @@ import scala.collection.immutable.{HashMap, TreeMap}
  */
 trait VertexMap[V, X <: EdgeLike[V]] {
     /**
+     * Method to get the AdjacencyList for vertex with key (attribute) v, if there is one.
+     *
+     * @param v the key (attribute) of the vertex whose adjacency list we require.
+     * @return an Option of AdjacencyList[X].
+     */
+    def optAdjacencyList(v: V): Option[AdjacencyList[X]]
+
+    /**
      * the vertex-type values, i.e. the keys, of this VertexMap.
      */
     val keys: Iterable[V]
@@ -46,11 +54,21 @@ trait VertexMap[V, X <: EdgeLike[V]] {
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
     def addEdge(v: V, x: X): VertexMap[V, X]
-//
-//    def dfs[A](visitor: Visitor[V,A])(a: A) = {
-//        val es = edges
-//        es.reduceLeft()
-//    }
+
+    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+        val pre = visitor.visitPre(v)
+        val zo: Option[Visitor[V, J]] = optAdjacencyList(v) map {
+            xa =>
+                xa.xs.foldLeft(pre) {
+                    (b, x) =>
+                        x.other(v) match {
+                            case Some(z) => dfs(b)(z)
+                            case None => throw GraphException(s"Logic error 1: dfs($v): x+$x")
+                        }
+                }
+        }
+        zo map (z => z.visitPost(v)) getOrElse pre.visitPost(v) // TODO fix this.
+    }
 }
 
 /**
@@ -129,6 +147,14 @@ object UnorderedVertexMap {
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  */
 abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]) extends VertexMap[V, X] {
+
+    /**
+     * Method to get the AdjacencyList for vertex with key (attribute) v, if there is one.
+     *
+     * @param v the key (attribute) of the vertex whose adjacency list we require.
+     * @return an Option of AdjacencyList[X].
+     */
+    def optAdjacencyList(v: V): Option[AdjacencyList[X]] = _map.get(v) map (_.adjacent)
 
     /**
      * Method to add a vertex of (key) type V to this graph.

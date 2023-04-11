@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.core
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
-trait Vertex[+V, X <: EdgeLike[V]] extends VertexLike[V] {
+trait Vertex[V, X <: EdgeLike[V]] extends VertexLike[V] {
     /**
      * Method to add an edge (x) to this Vertex.
      *
@@ -31,10 +31,10 @@ trait Vertex[+V, X <: EdgeLike[V]] extends VertexLike[V] {
 /**
  * Abstract base class to represent an vertex.
  *
- * @tparam V the (covariant) key (attribute) type of this Vertex.
+ * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
-abstract class AbstractVertex[+V, X <: EdgeLike[V]] extends Vertex[V, X] {
+abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
     /**
      * Method to add an edge to this AbstractVertex.
      *
@@ -59,10 +59,10 @@ abstract class AbstractVertex[+V, X <: EdgeLike[V]] extends Vertex[V, X] {
  *
  * @param attribute (V) the attribute/key of the resulting Vertex.
  * @param adjacent  (X) the adjacency list of the resulting Vertex.
- * @tparam V the (covariant) key (attribute) type of this Vertex.
+ * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
  */
-case class ConcreteVertex[+V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
+case class ConcreteVertex[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
 
     /**
      * Method to construct a new ConcreteVersion based on the types V and X.

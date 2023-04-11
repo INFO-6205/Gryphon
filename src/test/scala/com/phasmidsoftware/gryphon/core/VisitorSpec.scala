@@ -18,13 +18,13 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         t3 shouldBe PostVisitor(Queue(1, 2))
     }
 
-    it should "implement create and appendable" in {
+    it should "implement create and journal" in {
         val target = PostVisitor.create
         target.visitPre(1) shouldBe target
         val t1 = target.visitPost(1)
-        t1.appendable shouldBe Seq(1)
+        t1.journal shouldBe Seq(1)
         val t2 = t1.visitPost(2)
-        t2.appendable shouldBe Queue(1, 2)
+        t2.journal shouldBe Queue(1, 2)
     }
 
     it should "implement reverse" in {
@@ -46,12 +46,12 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         t3 shouldBe PreVisitor(Queue(1, 2))
     }
 
-    it should "implement create and appendable" in {
+    it should "implement create and journal" in {
         val target = PreVisitor.create
         val t1 = target.visitPre(1)
-        t1.appendable shouldBe Seq(1)
+        t1.journal shouldBe Seq(1)
         val t2 = t1.visitPre(2)
-        t2.appendable shouldBe Queue(1, 2)
+        t2.journal shouldBe Queue(1, 2)
     }
 
     it should "implement reverse" in {
@@ -76,7 +76,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         val postVisitor: PostVisitor[Int, Queue[Int]] = PostVisitor()
         val target: Visitor[Int, Queue[Int]] = preVisitor join postVisitor
         val z: Visitor[Int, Queue[Int]] = target.visitPre(1)
-        z.appendable shouldBe Queue(1)
+        z.journal shouldBe Queue(1)
     }
 
     it should "join 2" in {
@@ -85,14 +85,14 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         val target: Visitor[Int, List[Int]] = preVisitor join postVisitor
         val z1: Visitor[Int, List[Int]] = target.visitPre(1)
         val z2: Visitor[Int, List[Int]] = z1.visitPost(2)
-        z2.appendable shouldBe List(2, 1)
+        z2.journal shouldBe List(2, 1)
     }
 
     it should "join 3" in {
         val target: Visitor[Int, List[Int]] = Visitor.preAndPost[Int]
         val z1: Visitor[Int, List[Int]] = target.visitPre(1)
         val z2: Visitor[Int, List[Int]] = z1.visitPost(2)
-        z2.appendable shouldBe List(2, 1)
+        z2.journal shouldBe List(2, 1)
     }
 
     it should "postFunc" in {
