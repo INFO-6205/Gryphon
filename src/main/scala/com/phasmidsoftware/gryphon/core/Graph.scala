@@ -41,6 +41,16 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] {
      * @return Graph[V, E, X].
      */
     def addEdge(x: X): Graph[V, E, X]
+
+    /**
+     * Method to run depth-first-search on this Graph.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
 }
 
 abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __vertexMap: VertexMap[V, X]) extends Graph[V, E, X] {

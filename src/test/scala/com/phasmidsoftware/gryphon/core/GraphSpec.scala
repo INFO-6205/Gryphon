@@ -39,6 +39,16 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         target.edgeAttributes.headOption shouldBe Some(red)
     }
 
+    it should "dfs" in {
+        import Journal._
+        val graph = UndirectedGraph[String, Int]
+        val target = graph.addEdge(UndirectedEdge("A", "B", 1)).addEdge(UndirectedEdge("B", "C", 2))
+        val visitor = Visitor.createPostQueue[String]
+        target.dfs(visitor)("A") match {
+            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("C", "B", "A")
+        }
+    }
+
     behavior of "DirectedGraph"
 
     it should "create an empty graph" in {
@@ -51,5 +61,15 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         val graph: DirectedGraph[String, String] = DirectedGraph[String, String]
         val target = graph.addVertex(vertexA)
         target.vertices shouldBe Set(vertexA)
+    }
+
+    it should "dfs" in {
+        import Journal._
+        val graph = DirectedGraph[String, Int]
+        val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("B", "C", 2))
+        val visitor = Visitor.createPreQueue[String]
+        target.dfs(visitor)("A") match {
+            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "B", "C")
+        }
     }
 }

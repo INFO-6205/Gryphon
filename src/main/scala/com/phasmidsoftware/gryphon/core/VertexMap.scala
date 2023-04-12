@@ -224,19 +224,17 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      * @return a new Visitor[V, J].
      */
     private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] =
-        (optAdjacencyList(v) match {
-            case Some(xa) =>
-                xa.xs.foldLeft(visitor.visitPre(v)) {
-                    (b, x) => recurseOnEdgeX(v, b, x)
-                }
-            case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v")
-        }).visitPost(v)
+        recurseOnVertex(v, visitor.visitPre(v)).visitPost(v)
 
+    private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) = optAdjacencyList(v) match {
+        case Some(xa) => xa.xs.foldLeft(visitor)((q, x) => recurseOnEdgeX(v, q, x))
+        case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v")
+    }
 
-    private def recurseOnEdgeX[J](v: V, b: Visitor[V, J], x: X) =
+    private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], x: X) =
         BaseVertexMap.findAndMarkVertex(vertexMap, x.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") match {
-            case Some(z) => recursiveDFS(b, z)
-            case None => b
+            case Some(z) => recursiveDFS(visitor, z)
+            case None => visitor
         }
 
     private def buildMap(base: Map[V, Vertex[V, X]], v: V, x: X, vv: Vertex[V, X]) = base + (v -> (vv addEdge x))
