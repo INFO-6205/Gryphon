@@ -57,63 +57,15 @@ trait VertexMap[V, X <: EdgeLike[V]] {
      */
     def addEdge(v: V, x: X): VertexMap[V, X]
 
-    val vertexMap: Map[V, Vertex[V, X]]
-
     /**
-     * Recursive (not tail-recursive) method to run depth-first-search on this VertexMap.
+     * Method to run depth-first-search on this VertexMap.
      *
      * @param visitor the visitor, of type Visitor[V, J].
      * @param v       the starting vertex.
      * @tparam J the journal type.
      * @return a new Visitor[V, J].
      */
-    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
-        println(s"dfs: starting at $v on $self")
-        vertexMap.values foreach (_.reset())
-        findAndMarkVertex(Some(v), s"DFS initialization")
-        recursiveDFS(visitor, v)
-    }
-
-    private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] = {
-        val pre = visitor.visitPre(v)
-        val maybeResult = optAdjacencyList(v) map {
-            xa =>
-                xa.xs.foldLeft(pre) {
-                    (b, x) =>
-                        findAndMarkVertex(x.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") match {
-                            case Some(z) =>
-                                recursiveDFS(b, z)
-                            case None =>
-                                b
-                        }
-                }
-        }
-        val visitorRecursed: Visitor[V, J] = maybeResult.get // Yes, we should rework this.
-
-        visitorRecursed.visitPost(v)
-    }
-
-    /**
-     * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
-     * and, if not, marks it as discovered then returns it, wrapped in Some.
-     *
-     * @tparam J the journal type.
-     * @return Option[V]: the (optional) vertex to run dfs on next.
-     */
-    private def findAndMarkVertex[J](maybeV: Option[V], errorMessage: String): Option[V] = {
-        maybeV match {
-            case Some(z) =>
-                val vXvo: Option[Vertex[V, X]] = vertexMap.get(z)
-                val qo: Option[V] = vXvo filterNot (_.discovered) map (_.attribute)
-                qo match {
-                    case Some(q) =>
-                        Some(q) // CONSIDER check that q eq z
-                    case None =>
-                        None
-                }
-            case None => throw GraphException(errorMessage)
-        }
-    }
+    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
 }
 
 /**
@@ -242,6 +194,20 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
     val edges: Iterable[X] = _map.values.flatMap(_.adjacent.xs)
 
     /**
+     * Method to run depth-first-search on this VertexMap.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+        vertexMap.values foreach (_.reset())
+        BaseVertexMap.findAndMarkVertex(vertexMap, Some(v), s"DFS initialization")
+        recursiveDFS(visitor, v)
+    }
+
+    /**
      * (abstract) Method to construct a new VertexMap from the given map.
      *
      * @param map a Map (might be TreeMap or HashMap).
@@ -249,5 +215,52 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      */
     def unit(map: Map[V, Vertex[V, X]]): VertexMap[V, X]
 
+    /**
+     * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
+     *
+     * @param visitor the Visitor[V, J].
+     * @param v       the vertex at which we run depth-first-search.
+     * @tparam J the Journal type of the Visitor.
+     * @return a new Visitor[V, J].
+     */
+    private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] =
+        (optAdjacencyList(v) match {
+            case Some(xa) =>
+                xa.xs.foldLeft(visitor.visitPre(v)) {
+                    (b, x) => recurseOnEdgeX(v, b, x)
+                }
+            case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v")
+        }).visitPost(v)
+
+
+    private def recurseOnEdgeX[J](v: V, b: Visitor[V, J], x: X) =
+        BaseVertexMap.findAndMarkVertex(vertexMap, x.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") match {
+            case Some(z) => recursiveDFS(b, z)
+            case None => b
+        }
+
     private def buildMap(base: Map[V, Vertex[V, X]], v: V, x: X, vv: Vertex[V, X]) = base + (v -> (vv addEdge x))
+}
+
+object BaseVertexMap {
+    /**
+     * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
+     * and, if not, marks it as discovered then returns it, wrapped in Some.
+     *
+     * @tparam J the journal type.
+     * @return Option[V]: the (optional) vertex to run dfs on next.
+     */
+    private[core] def findAndMarkVertex[V, X <: EdgeLike[V], J](vertexMap: Map[V, Vertex[V, X]], maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
+        case Some(z) =>
+            val vXvo: Option[Vertex[V, X]] = vertexMap.get(z)
+            val qo: Option[V] = vXvo filterNot (_.discovered) map (_.attribute)
+            qo match {
+                case Some(q) =>
+                    Some(q) // CONSIDER check that q eq z
+                case None =>
+                    None
+            }
+        case None => throw GraphException(errorMessage)
+    }
+
 }
