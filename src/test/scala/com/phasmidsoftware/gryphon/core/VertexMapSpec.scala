@@ -20,6 +20,15 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
         result.journal shouldBe Queue("A", "B", "C")
     }
 
+    it should "bfs" in {
+        import Journal._
+        val vertexMap: VertexMap[String, DirectedEdge[String, Int]] = OrderedVertexMap.empty
+        val target = vertexMap.addEdge("A", DirectedEdge("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdge("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdge("A", "C", 2)).addVertex("C")
+        val visitor = Visitor.createPre[String]
+        val result = target.bfs(visitor)("A")
+        result.journal shouldBe Queue("A", "C", "D", "B")
+    }
+
     behavior of "OrderedVertexMap"
 
     it should "keys" in {

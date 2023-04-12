@@ -49,6 +49,18 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         }
     }
 
+    it should "bfs" in {
+        import Journal._
+        val graph = UndirectedGraph[String, Int]("test")
+        val target = graph.addEdge(UndirectedEdge("A", "B", 1)).addEdge(UndirectedEdge("A", "D", 3)).addEdge(UndirectedEdge("A", "C", 2))
+        val visitor = Visitor.createPreQueue[String]
+        val result = target.bfs(visitor)("A")
+        target.dfs(visitor)("A") match {
+            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
+        }
+    }
+
+
     behavior of "DirectedGraph"
 
     it should "create an empty graph" in {
@@ -80,6 +92,17 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         val visitor = Visitor.reversePostList[String]
         target.dfs(visitor)("A") match {
             case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "B", "C")
+        }
+    }
+
+    it should "bfs" in {
+        import Journal._
+        val graph = DirectedGraph[String, Int]("test")
+        val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("A", "D", 3)).addEdge(DirectedEdge("A", "C", 2))
+        val visitor = Visitor.createPreQueue[String]
+        val result = target.bfs(visitor)("A")
+        target.dfs(visitor)("A") match {
+            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.phasmidsoftware.gryphon.core
 
-import scala.collection.immutable.{HashMap, TreeMap}
+import com.phasmidsoftware.gryphon.core.BaseVertexMap.findAndMarkVertex
+import scala.annotation.tailrec
+import scala.collection.immutable.{HashMap, Queue, TreeMap}
 
 /**
  * Trait to define the behavior of a "vertex map," i.e. the set of adjacency lists for a graph.
@@ -69,6 +71,17 @@ trait VertexMap[V, X <: EdgeLike[V]] {
      * @return a new Visitor[V, J].
      */
     def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+
+    /**
+     * Method to run breadth-first-search on this VertexMap.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     *                Note that only "pre" events are recorded by this Visitor.
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
 }
 
 /**
@@ -205,8 +218,24 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      * @return a new Visitor[V, J].
      */
     def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
-        initializeDfs(v)
+        initializeVisits(v)
         val result = recursiveDFS(visitor, v)
+        result.close()
+        result
+    }
+
+    /**
+     * Method to run breadth-first-search on this VertexMap.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+        initializeVisits(v)
+        val queue: Queue[V] = Queue.empty
+        val result: Visitor[V, J] = doBFS(visitor, queue.appended(v))
         result.close()
         result
     }
@@ -232,7 +261,7 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
 
     private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) = optAdjacencyList(v) match {
         case Some(xa) => xa.xs.foldLeft(visitor)((q, x) => recurseOnEdgeX(v, q, x))
-        case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v")
+        case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
 
     private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], x: X) =
@@ -241,9 +270,26 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
             case None => visitor
         }
 
-    private def initializeDfs[J](v: V): Unit = {
+    private def enqueueUnvisitedVertices(v: V, queue: Queue[V]): Queue[V] = optAdjacencyList(v) match {
+        case Some(xa) => xa.xs.foldLeft(queue)((q, x) => q ++ getVertices(v, x))
+        case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
+    }
+
+    private def getVertices(v: V, x: X): Seq[V] = findAndMarkVertex(vertexMap, x.other(v), "getVertices").toSeq
+
+    private def doBFS[J](visitor: Visitor[V, J], queue: Queue[V]): Visitor[V, J] = {
+        @tailrec
+        def inner(result: Visitor[V, J], work: Queue[V]): Visitor[V, J] = work match {
+            case head +: tail => inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
+            case _ => result
+        }
+
+        inner(visitor, queue)
+    }
+
+    private def initializeVisits[J](v: V): Unit = {
         vertexMap.values foreach (_.reset())
-        BaseVertexMap.findAndMarkVertex(vertexMap, Some(v), s"DFS initialization")
+        BaseVertexMap.findAndMarkVertex(vertexMap, Some(v), s"initializeVisits")
     }
 
     private def buildMap(base: Map[V, Vertex[V, X]], v: V, x: X, vv: Vertex[V, X]) = base + (v -> (vv addEdge x))
@@ -254,10 +300,9 @@ object BaseVertexMap {
      * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
      * and, if not, marks it as discovered then returns it, wrapped in Some.
      *
-     * @tparam J the journal type.
      * @return Option[V]: the (optional) vertex to run dfs on next.
      */
-    private[core] def findAndMarkVertex[V, X <: EdgeLike[V], J](vertexMap: Map[V, Vertex[V, X]], maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
+    private[core] def findAndMarkVertex[V, X <: EdgeLike[V]](vertexMap: Map[V, Vertex[V, X]], maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
         case Some(z) =>
             val vXvo: Option[Vertex[V, X]] = vertexMap.get(z)
             val qo: Option[V] = vXvo filterNot (_.discovered) map (_.attribute)
