@@ -1,11 +1,9 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.core.BaseVertexMap.findAndMarkVertex
-import com.phasmidsoftware.gryphon.core.MutableQueueable.MutableQueueableQueue
 import com.phasmidsoftware.gryphon.core.Queueable.QueueableQueue
 import scala.annotation.tailrec
 import scala.collection.immutable.{HashMap, Queue, TreeMap}
-import scala.collection.mutable
 
 /**
  * Trait to define the behavior of a "vertex map," i.e. the set of adjacency lists for a graph.
@@ -228,12 +226,13 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      * @param visitor the visitor, of type Visitor[V, J].
      * @param v       the starting vertex.
      * @tparam J the journal type.
+     * @tparam Q the type of the mutable queue for navigating this Traversable.
+     *           Requires implicit evidence of MutableQueueable[Q, V].
      * @return a new Visitor[V, J].
      */
-    def bfsMutable[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = {
         initializeVisits(v)
-        implicit object queuable extends MutableQueueableQueue[V]
-        val result: Visitor[V, J] = doBFSMutable[J, mutable.Queue[V]](visitor, v)
+        val result: Visitor[V, J] = doBFSMutable[J, Q](visitor, v)
         result.close()
         result
     }
@@ -286,15 +285,14 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
     }
 
     private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: Queueable[Q, V]): Visitor[V, J] =
+    // CONSIDER inlining this method
         doBFSImmutableX(visitor, queueable.append(queueable.empty, v))
 
     private def doBFSMutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
         @tailrec
         def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = {
-            val maybeV = queueable.take(work)
-            maybeV match {
-                case Some(v) =>
-                    inner(result.visitPre(v), enqueueMutableUnvisitedVertices(v, work))
+            queueable.take(work) match {
+                case Some(v) => inner(result.visitPre(v), enqueueMutableUnvisitedVertices(v, work))
                 case _ => result
             }
         }
@@ -305,6 +303,7 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
     private def doBFSMutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
         val queue: Q = queueable.empty
         queueable.append(queue, v)
+        // CONSIDER inlining this method
         doBFSMutableX(visitor, queue)
     }
 

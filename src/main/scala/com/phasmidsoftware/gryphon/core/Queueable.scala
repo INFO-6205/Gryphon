@@ -2,6 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 import scala.collection.immutable.Queue
 import scala.collection.mutable
+import scala.collection.mutable.PriorityQueue
 
 /**
  * Type class trait to define the behavior of an immutable queue-like object.
@@ -86,4 +87,31 @@ object MutableQueueable {
     }
 
     implicit object MutableQueueableStringQueue extends MutableQueueableQueue[String]
+}
+
+/**
+ * Type class trait to define the behavior of an immutable queue-like object.
+ *
+ * @tparam Q the queue type.
+ * @tparam V the underlying type of the journal.
+ */
+trait PriorityQueueable[Q, V] extends MutableQueueable[Q, V] with Ordering[V]
+
+object PriorityQueueable {
+    trait QueueablePriorityQueue[V] extends PriorityQueueable[mutable.PriorityQueue[V], V] {
+
+        def take(q: PriorityQueue[V]): Option[V] = Option.when(q.nonEmpty)(q.dequeue())
+
+        def empty: PriorityQueue[V] = PriorityQueue.empty(this)
+
+        def append(vq: PriorityQueue[V], v: V): Unit = vq.enqueue(v)
+    }
+
+    implicit object QueueableDoublePriorityQueue extends QueueablePriorityQueue[Double] {
+        def compare(x: Double, y: Double): Int = x.compareTo(y)
+    }
+
+    implicit object QueueableStringPriorityQueue extends QueueablePriorityQueue[String] {
+        def compare(x: String, y: String): Int = x.compareTo(y)
+    }
 }

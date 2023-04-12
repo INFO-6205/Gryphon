@@ -33,7 +33,9 @@ trait Traversable[V] {
      * @param visitor the visitor, of type Visitor[V, J].
      * @param v       the starting vertex.
      * @tparam J the journal type.
+     * @tparam Q the type of the mutable queue for navigating this Traversable.
+     *           Requires implicit evidence of MutableQueueable[Q, V].
      * @return a new Visitor[V, J].
      */
-    def bfsMutable[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J]
 }

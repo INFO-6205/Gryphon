@@ -70,12 +70,13 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[Strin
      * Method to run breadth-first-search with a mutable queue on this Graph.
      *
      * @param visitor the visitor, of type Visitor[V, J].
-     *                Note that only "pre" events are recorded by this Visitor.
      * @param v       the starting vertex.
      * @tparam J the journal type.
+     * @tparam Q the type of the mutable queue for navigating this Traversable.
+     *           Requires implicit evidence of MutableQueueable[Q, V].
      * @return a new Visitor[V, J].
      */
-    def bfsMutable[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.bfsMutable(visitor)(v)
+    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = vertexMap.bfsMutable[J, Q](visitor)(v)
 }
 
 abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __description: String, val __vertexMap: VertexMap[V, X]) extends Graph[V, E, X] {

@@ -98,11 +98,23 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
     it should "bfs" in {
         import Journal._
         val graph = DirectedGraph[String, Int]("test")
-        val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("A", "D", 3)).addEdge(DirectedEdge("A", "C", 2))
+        val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("B", "D", 3)).addEdge(DirectedEdge("A", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         val result = target.bfs(visitor)("A")
         result match {
-            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
+            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "B", "D")
+        }
+    }
+
+    it should "bfs with PriorityQueue" in {
+        import Journal._
+        val graph = DirectedGraph[String, Int]("test")
+        val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("B", "D", 3)).addEdge(DirectedEdge("A", "C", 2))
+        val visitor = Visitor.createPreQueue[String]
+        import PriorityQueueable._
+        val result = target.bfsMutable(visitor)("A")
+        result match {
+            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "B", "D")
         }
     }
 }
