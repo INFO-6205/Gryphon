@@ -55,7 +55,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         val target = graph.addEdge(UndirectedEdge("A", "B", 1)).addEdge(UndirectedEdge("A", "D", 3)).addEdge(UndirectedEdge("A", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         val result = target.bfs(visitor)("A")
-        target.dfs(visitor)("A") match {
+        result match {
             case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
         }
     }
@@ -101,7 +101,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("A", "D", 3)).addEdge(DirectedEdge("A", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         val result = target.bfs(visitor)("A")
-        target.dfs(visitor)("A") match {
+        result match {
             case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
         }
     }

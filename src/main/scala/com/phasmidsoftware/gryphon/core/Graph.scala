@@ -11,7 +11,7 @@ package com.phasmidsoftware.gryphon.core
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  *
  */
-trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[String] {
+trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[String] with Traversable[V] {
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -65,6 +65,17 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[Strin
      * @return a new Visitor[V, J].
      */
     def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.bfs(visitor)(v)
+
+    /**
+     * Method to run breadth-first-search with a mutable queue on this Graph.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     *                Note that only "pre" events are recorded by this Visitor.
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def bfsMutable[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.bfsMutable(visitor)(v)
 }
 
 abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __description: String, val __vertexMap: VertexMap[V, X]) extends Graph[V, E, X] {

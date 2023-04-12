@@ -1,8 +1,11 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.core.BaseVertexMap.findAndMarkVertex
+import com.phasmidsoftware.gryphon.core.MutableQueueable.MutableQueueableQueue
+import com.phasmidsoftware.gryphon.core.Queueable.QueueableQueue
 import scala.annotation.tailrec
 import scala.collection.immutable.{HashMap, Queue, TreeMap}
+import scala.collection.mutable
 
 /**
  * Trait to define the behavior of a "vertex map," i.e. the set of adjacency lists for a graph.
@@ -19,7 +22,7 @@ import scala.collection.immutable.{HashMap, Queue, TreeMap}
  * @tparam V the (key) vertex-type of a graph.
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
  */
-trait VertexMap[V, X <: EdgeLike[V]] {
+trait VertexMap[V, X <: EdgeLike[V]] extends Traversable[V] {
     self =>
 
     /**
@@ -61,27 +64,6 @@ trait VertexMap[V, X <: EdgeLike[V]] {
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
     def addEdge(v: V, x: X): VertexMap[V, X]
-
-    /**
-     * Method to run depth-first-search on this VertexMap.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
-
-    /**
-     * Method to run breadth-first-search on this VertexMap.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     *                Note that only "pre" events are recorded by this Visitor.
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
 }
 
 /**
@@ -234,10 +216,35 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      */
     def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
         initializeVisits(v)
-        val queue: Queue[V] = Queue.empty
-        val result: Visitor[V, J] = doBFS(visitor, queue.appended(v))
+        implicit object queuable extends QueueableQueue[V]
+        val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)
         result.close()
         result
+    }
+
+    private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: Queueable[Q, V]): Visitor[V, J] =
+        doBFSImmutableX(visitor, queueable.append(queueable.empty, v))
+
+    /**
+     * Method to run breadth-first-search with a mutable queue on this Traversable.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def bfsMutable[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+        initializeVisits(v)
+        implicit object queuable extends MutableQueueableQueue[V]
+        val result: Visitor[V, J] = doBFSMutable[J, mutable.Queue[V]](visitor, v)
+        result.close()
+        result
+    }
+
+    private def doBFSMutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
+        val queue: Q = queueable.empty
+        queueable.append(queueable.empty, v)
+        doBFSMutableX(visitor, queue)
     }
 
     /**
@@ -270,21 +277,36 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
             case None => visitor
         }
 
-    private def enqueueUnvisitedVertices(v: V, queue: Queue[V]): Queue[V] = optAdjacencyList(v) match {
-        case Some(xa) => xa.xs.foldLeft(queue)((q, x) => q ++ getVertices(v, x))
+    private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q = optAdjacencyList(v) match {
+        case Some(xa) => xa.xs.foldLeft(queue)((q, x) => queueable.appendAll(q, getVertices(v, x)))
         case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
     }
 
     private def getVertices(v: V, x: X): Seq[V] = findAndMarkVertex(vertexMap, x.other(v), "getVertices").toSeq
 
-    private def doBFS[J](visitor: Visitor[V, J], queue: Queue[V]): Visitor[V, J] = {
+    private def doBFSImmutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
         @tailrec
-        def inner(result: Visitor[V, J], work: Queue[V]): Visitor[V, J] = work match {
-            case head +: tail => inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
+        def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
+            case Some((head, tail)) => inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
             case _ => result
         }
 
         inner(visitor, queue)
+    }
+
+    private def doBFSMutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
+        @tailrec
+        def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
+            case Some(v) => inner(result.visitPre(v), enqueueMutableUnvisitedVertices(v, queue))
+            case _ => result
+        }
+
+        inner(visitor, queue)
+    }
+
+    private def enqueueMutableUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: MutableQueueable[Q, V]): Q = optAdjacencyList(v) match {
+        case Some(xa) => xa.xs.foldLeft(queue) { (q, x) => queueable.appendAll(q, getVertices(v, x)); queue }
+        case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
     }
 
     private def initializeVisits[J](v: V): Unit = {
