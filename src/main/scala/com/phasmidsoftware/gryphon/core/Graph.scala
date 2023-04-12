@@ -3,12 +3,15 @@ package com.phasmidsoftware.gryphon.core
 /**
  * Trait to model the behavior of a graph.
  *
+ * The attribute type for a Graph is String.
+ * The edge and vertex attributes are whatever you like (E and V respectively -- see below).
+ *
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  *
  */
-trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] {
+trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[String] {
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -53,7 +56,13 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] {
     def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
 }
 
-abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __vertexMap: VertexMap[V, X]) extends Graph[V, E, X] {
+abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __description: String, val __vertexMap: VertexMap[V, X]) extends Graph[V, E, X] {
+
+    /**
+     * Yields the description of this Graph.
+     */
+    val attribute: String = __description
+
     /**
      * Method to add a vertex of (key) type V to this graph.
      * The vertex will have degree of zero.
@@ -79,7 +88,7 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __vertexMap: VertexMap[V
     def unit(vertexMap: VertexMap[V, X]): AbstractGraph[V, E, X]
 }
 
-abstract class AbstractDirectedGraph[V, E](val _vertexMap: VertexMap[V, DirectedEdge[V, E]]) extends AbstractGraph[V, E, DirectedEdge[V, E]](_vertexMap) {
+abstract class AbstractDirectedGraph[V, E](val _description: String, val _vertexMap: VertexMap[V, DirectedEdge[V, E]]) extends AbstractGraph[V, E, DirectedEdge[V, E]](_description, _vertexMap) {
     /**
      * Method to yield all edges of this AbstractDirectedGraph.
      *
@@ -99,7 +108,7 @@ abstract class AbstractDirectedGraph[V, E](val _vertexMap: VertexMap[V, Directed
         unit(_vertexMap.addEdge(x._from, x).addVertex(x._to))
 }
 
-abstract class AbstractUndirectedGraph[V, E](val _vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractGraph[V, E, UndirectedEdge[V, E]](_vertexMap) {
+abstract class AbstractUndirectedGraph[V, E](val _description: String, val _vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractGraph[V, E, UndirectedEdge[V, E]](_description, _vertexMap) {
     /**
      * Method to yield all edges of this AbstractUndirectedGraph.
      *
@@ -134,7 +143,7 @@ trait GraphLike[V, E]
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
  */
-case class DirectedGraph[V, E](vertexMap: VertexMap[V, DirectedEdge[V, E]]) extends AbstractDirectedGraph[V, E](vertexMap) {
+case class DirectedGraph[V, E](description: String, vertexMap: VertexMap[V, DirectedEdge[V, E]]) extends AbstractDirectedGraph[V, E](description, vertexMap) {
 
     /**
      * Method to create a new DirectedGraph from a given vertex map.
@@ -142,7 +151,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V, DirectedEdge[V, E]]) exte
      * @param vertexMap the vertex map.
      * @return a new DirectedGraph[V, E].
      */
-    def unit(vertexMap: VertexMap[V, DirectedEdge[V, E]]): AbstractGraph[V, E, DirectedEdge[V, E]] = DirectedGraph(vertexMap)
+    def unit(vertexMap: VertexMap[V, DirectedEdge[V, E]]): AbstractGraph[V, E, DirectedEdge[V, E]] = DirectedGraph(description, vertexMap)
 }
 
 /**
@@ -156,7 +165,7 @@ object DirectedGraph {
      * @tparam E the edge-attribute type.
      * @return an empty DirectedGraph[V, E].
      */
-    def apply[V, E]: DirectedGraph[V, E] = new DirectedGraph(UnorderedVertexMap.empty)
+    def apply[V, E](description: String): DirectedGraph[V, E] = new DirectedGraph(description, UnorderedVertexMap.empty)
 
     /**
      * Method to construct a new empty directed graph with orderable vertex-type.
@@ -168,7 +177,7 @@ object DirectedGraph {
      * @tparam E the edge-attribute type.
      * @return an empty UndirectedGraph[V, E].
      */
-    def createOrdered[V: Ordering, E]: DirectedGraph[V, E] = new DirectedGraph(OrderedVertexMap.empty[V, DirectedEdge[V, E]])
+    def createOrdered[V: Ordering, E](description: String): DirectedGraph[V, E] = new DirectedGraph(description, OrderedVertexMap.empty[V, DirectedEdge[V, E]])
 }
 
 
@@ -179,7 +188,7 @@ object DirectedGraph {
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
  */
-case class UndirectedGraph[V, E](vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractUndirectedGraph[V, E](vertexMap) {
+case class UndirectedGraph[V, E](description: String, vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractUndirectedGraph[V, E](description, vertexMap) {
 
     /**
      * Method to create a new UndirectedGraph from a given vertex map.
@@ -187,7 +196,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V, UndirectedEdge[V, E]]) 
      * @param vertexMap the vertex map.
      * @return a new UndirectedGraph[V, E].
      */
-    def unit(vertexMap: VertexMap[V, UndirectedEdge[V, E]]): AbstractGraph[V, E, UndirectedEdge[V, E]] = UndirectedGraph(vertexMap)
+    def unit(vertexMap: VertexMap[V, UndirectedEdge[V, E]]): AbstractGraph[V, E, UndirectedEdge[V, E]] = UndirectedGraph(description, vertexMap)
 }
 
 /**
@@ -201,7 +210,7 @@ object UndirectedGraph {
      * @tparam E the edge-attribute type.
      * @return an empty UndirectedGraph[V, E].
      */
-    def apply[V, E]: UndirectedGraph[V, E] = new UndirectedGraph(UnorderedVertexMap.empty[V, UndirectedEdge[V, E]])
+    def apply[V, E](description: String): UndirectedGraph[V, E] = new UndirectedGraph(description, UnorderedVertexMap.empty[V, UndirectedEdge[V, E]])
 
     /**
      * Method to construct a new empty undirected graph with orderable vertex-type.
@@ -211,5 +220,6 @@ object UndirectedGraph {
      * @tparam E the edge-attribute type.
      * @return an empty UndirectedGraph[V, E].
      */
-    def createOrdered[V: Ordering, E]: UndirectedGraph[V, E] = new UndirectedGraph(OrderedVertexMap.empty[V, UndirectedEdge[V, E]])
+    def createOrdered[V: Ordering, E](description: String): UndirectedGraph[V, E] = new UndirectedGraph(description, OrderedVertexMap.empty[V, UndirectedEdge[V, E]])
+
 }
