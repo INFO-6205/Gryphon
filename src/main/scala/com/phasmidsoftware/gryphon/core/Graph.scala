@@ -86,7 +86,7 @@ abstract class AbstractDirectedGraph[V, E](val _vertexMap: VertexMap[V, Directed
      * @return a new AbstractGraph which also includes x.
      */
     def addEdge(x: DirectedEdge[V, E]): AbstractGraph[V, E, DirectedEdge[V, E]] =
-        unit(_vertexMap.addEdge(x._from, x))
+        unit(_vertexMap.addEdge(x._from, x).addVertex(x._to))
 }
 
 abstract class AbstractUndirectedGraph[V, E](val _vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractGraph[V, E, UndirectedEdge[V, E]](_vertexMap) {
@@ -105,7 +105,7 @@ abstract class AbstractUndirectedGraph[V, E](val _vertexMap: VertexMap[V, Undire
      */
     def addEdge(x: UndirectedEdge[V, E]): AbstractGraph[V, E, UndirectedEdge[V, E]] = {
         val (v, w) = x.vertices
-        unit(_vertexMap.addEdge(v, x).addEdge(w, x))
+        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
     }
 }
 

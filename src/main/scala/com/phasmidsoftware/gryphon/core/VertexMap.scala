@@ -15,6 +15,8 @@ import scala.collection.immutable.{HashMap, TreeMap}
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
  */
 trait VertexMap[V, X <: EdgeLike[V]] {
+    self =>
+
     /**
      * Method to get the AdjacencyList for vertex with key (attribute) v, if there is one.
      *
@@ -55,19 +57,62 @@ trait VertexMap[V, X <: EdgeLike[V]] {
      */
     def addEdge(v: V, x: X): VertexMap[V, X]
 
+    val vertexMap: Map[V, Vertex[V, X]]
+
+    /**
+     * Recursive (not tail-recursive) method to run depth-first-search on this VertexMap.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
     def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+        println(s"dfs: starting at $v on $self")
+        vertexMap.values foreach (_.reset())
+        findAndMarkVertex(Some(v), s"DFS initialization")
+        recursiveDFS(visitor, v)
+    }
+
+    private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] = {
         val pre = visitor.visitPre(v)
-        val zo: Option[Visitor[V, J]] = optAdjacencyList(v) map {
+        val maybeResult = optAdjacencyList(v) map {
             xa =>
                 xa.xs.foldLeft(pre) {
                     (b, x) =>
-                        x.other(v) match {
-                            case Some(z) => dfs(b)(z)
-                            case None => throw GraphException(s"Logic error 1: dfs($v): x: $x")
+                        findAndMarkVertex(x.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") match {
+                            case Some(z) =>
+                                recursiveDFS(b, z)
+                            case None =>
+                                b
                         }
                 }
         }
-        zo map (z => z.visitPost(v)) getOrElse pre.visitPost(v) // TODO fix this.
+        val visitorRecursed: Visitor[V, J] = maybeResult.get // Yes, we should rework this.
+
+        visitorRecursed.visitPost(v)
+    }
+
+    /**
+     * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
+     * and, if not, marks it as discovered then returns it, wrapped in Some.
+     *
+     * @tparam J the journal type.
+     * @return Option[V]: the (optional) vertex to run dfs on next.
+     */
+    private def findAndMarkVertex[J](maybeV: Option[V], errorMessage: String): Option[V] = {
+        maybeV match {
+            case Some(z) =>
+                val vXvo: Option[Vertex[V, X]] = vertexMap.get(z)
+                val qo: Option[V] = vXvo filterNot (_.discovered) map (_.attribute)
+                qo match {
+                    case Some(q) =>
+                        Some(q) // CONSIDER check that q eq z
+                    case None =>
+                        None
+                }
+            case None => throw GraphException(errorMessage)
+        }
     }
 }
 
@@ -178,6 +223,8 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
             case None => buildMap(_map, v, x, Vertex.empty(v))
         }
     )
+
+    val vertexMap: Map[V, Vertex[V, X]] = _map
 
     /**
      * the vertex-type values, i.e. the keys, of this VertexMap.

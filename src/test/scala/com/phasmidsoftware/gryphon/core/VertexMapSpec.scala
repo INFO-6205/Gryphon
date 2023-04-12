@@ -14,7 +14,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
     it should "dfs" in {
         import Journal._
         val vertexMap: VertexMap[String, DirectedEdge[String, Int]] = OrderedVertexMap.empty
-        val target = vertexMap.addEdge("A", DirectedEdge("A", "B", 1)).addEdge("B", DirectedEdge("B", "C", 2))
+        val target = vertexMap.addEdge("A", DirectedEdge("A", "B", 1)).addEdge("B", DirectedEdge("B", "C", 2)).addVertex("C")
         val visitor = Visitor.createPre[String]
         val result = target.dfs(visitor)("A")
         result.journal shouldBe Queue("A", "B", "C")
@@ -37,6 +37,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
         val edge: DirectedEdge[String, Int] = DirectedEdge(vertexA, vertexB, 42)
         val targetUpdated = target.addEdge(vertexA, edge)
         targetUpdated.keys shouldBe Set(vertexA)
+        targetUpdated.values.toSeq shouldBe Seq(ConcreteVertex("A", AdjacencyList(List(edge))))
         targetUpdated.edges shouldBe Seq(edge)
     }
 

@@ -26,6 +26,10 @@ trait Vertex[V, X <: EdgeLike[V]] extends VertexLike[V] {
      * @return the size of adjacent.
      */
     def degree: Int = adjacent.size
+
+    def discovered: Boolean
+
+    def reset(): Unit
 }
 
 /**
@@ -35,6 +39,17 @@ trait Vertex[V, X <: EdgeLike[V]] extends VertexLike[V] {
  * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
 abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
+
+    private var visited: Boolean = false
+
+    def discovered: Boolean = {
+        val result = visited; visited = true; result
+    }
+
+    def reset(): Unit = {
+        visited = false
+    }
+
     /**
      * Method to add an edge to this AbstractVertex.
      *
