@@ -78,7 +78,7 @@ trait MutableQueueable[Q, V] {
 
 object MutableQueueable {
     trait MutableQueueableQueue[V] extends MutableQueueable[mutable.Queue[V], V] {
-        def take(q: mutable.Queue[V]): Option[V] = q.headOption
+        def take(q: mutable.Queue[V]): Option[V] = Option.when(q.nonEmpty)(q.dequeue())
 
         def empty: mutable.Queue[V] = mutable.Queue.empty
 

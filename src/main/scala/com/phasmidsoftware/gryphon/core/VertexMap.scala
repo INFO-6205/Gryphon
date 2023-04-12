@@ -222,9 +222,6 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
         result
     }
 
-    private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: Queueable[Q, V]): Visitor[V, J] =
-        doBFSImmutableX(visitor, queueable.append(queueable.empty, v))
-
     /**
      * Method to run breadth-first-search with a mutable queue on this Traversable.
      *
@@ -239,12 +236,6 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
         val result: Visitor[V, J] = doBFSMutable[J, mutable.Queue[V]](visitor, v)
         result.close()
         result
-    }
-
-    private def doBFSMutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
-        val queue: Q = queueable.empty
-        queueable.append(queueable.empty, v)
-        doBFSMutableX(visitor, queue)
     }
 
     /**
@@ -294,14 +285,27 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
         inner(visitor, queue)
     }
 
+    private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: Queueable[Q, V]): Visitor[V, J] =
+        doBFSImmutableX(visitor, queueable.append(queueable.empty, v))
+
     private def doBFSMutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
         @tailrec
-        def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
-            case Some(v) => inner(result.visitPre(v), enqueueMutableUnvisitedVertices(v, queue))
-            case _ => result
+        def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = {
+            val maybeV = queueable.take(work)
+            maybeV match {
+                case Some(v) =>
+                    inner(result.visitPre(v), enqueueMutableUnvisitedVertices(v, work))
+                case _ => result
+            }
         }
 
         inner(visitor, queue)
+    }
+
+    private def doBFSMutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
+        val queue: Q = queueable.empty
+        queueable.append(queue, v)
+        doBFSMutableX(visitor, queue)
     }
 
     private def enqueueMutableUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: MutableQueueable[Q, V]): Q = optAdjacencyList(v) match {
