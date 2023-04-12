@@ -3,8 +3,13 @@ package com.phasmidsoftware.gryphon.core
 /**
  * Class which represents an adjacency list.
  *
+ * An adjacency list is a sequence of edges of type X which, in turn, reference
+ * vertices of type Vertex[V, X].
+ *
+ * CONSIDER using a Bag for xs because a bag has no implicit ordering.
+ *
  * @param xs a sequence of edges of type X.
- * @tparam X the type of edge.
+ * @tparam X the edge type (directed, undirected, etc.).
  */
 case class AdjacencyList[+X](xs: Seq[X]) {
 

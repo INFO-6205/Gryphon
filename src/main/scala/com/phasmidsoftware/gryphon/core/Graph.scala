@@ -11,7 +11,7 @@ package com.phasmidsoftware.gryphon.core
 trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] {
 
     /**
-     * (abstract) Yield an iterable of edges.
+     * (abstract) Yield an iterable of edges, of type X.
      *
      * @return an Iterable[X].
      */
@@ -23,14 +23,14 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] {
     val vertexMap: VertexMap[V, X]
 
     /**
-     * (abstract) Yield an iterable of vertices.
+     * Yield an iterable of vertices of type V.
      *
      * @return an Iterable[V].
      */
     val vertices: Iterable[V] = vertexMap.keys
 
     /**
-     * Yield an iterable of edge attributes.
+     * Yield an iterable of edge attributes of type E.
      */
     lazy val edgeAttributes: Iterable[E] = edges.map(_.attribute)
 

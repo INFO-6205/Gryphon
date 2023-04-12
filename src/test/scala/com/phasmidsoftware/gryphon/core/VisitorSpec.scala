@@ -37,7 +37,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "implement reversePost" in {
-        val target = Visitor.reversePost
+        val target = Visitor.reversePost[Int]
         target.visitPre(1) shouldBe target
         val t1 = target.visitPost(1)
         t1 shouldBe PostVisitor(List(1))
@@ -86,7 +86,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "implement reversePre with two visits" in {
-        val target = Visitor.reversePre
+        val target = Visitor.reversePre[Int]
         val t1 = target.visitPre(1)
         t1 shouldBe PreVisitor(List(1))
         val t2 = t1.visitPre(2)
@@ -166,7 +166,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
 
     it should "join 2" in {
         val preVisitor: PreVisitor[Int, List[Int]] = PreVisitor()
-        val postVisitor = Visitor.reversePost
+        val postVisitor = Visitor.reversePost[Int]
         val target: Visitor[Int, List[Int]] = preVisitor join postVisitor
         val z1: Visitor[Int, List[Int]] = target.visitPre(1)
         z1.visitPost(2).journal shouldBe List(2, 1)

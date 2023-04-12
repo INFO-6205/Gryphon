@@ -205,6 +205,8 @@ abstract class BaseVertexPair[V](_v1: V, _v2: V) extends Edge[V, Unit] {
      *
      * CONSIDER merging this class with BaseUndirectedEdge.
      *
+     * TESTME
+     *
      * @param v (V) the given vertex key (attribute).
      * @return an optional vertex key.
      */

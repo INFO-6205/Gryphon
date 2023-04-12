@@ -63,11 +63,21 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         target.vertices shouldBe Set(vertexA)
     }
 
-    it should "dfs" in {
+    it should "dfs pre-order" in {
         import Journal._
         val graph = DirectedGraph[String, Int]
         val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("B", "C", 2))
         val visitor = Visitor.createPreQueue[String]
+        target.dfs(visitor)("A") match {
+            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "B", "C")
+        }
+    }
+
+    it should "dfs reverse post-order" in {
+        import Journal._
+        val graph = DirectedGraph[String, Int]
+        val target = graph.addEdge(DirectedEdge("A", "B", 1)).addEdge(DirectedEdge("B", "C", 2))
+        val visitor = Visitor.reversePostList[String]
         target.dfs(visitor)("A") match {
             case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "B", "C")
         }

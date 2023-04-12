@@ -5,6 +5,9 @@ import scala.collection.immutable.{HashMap, TreeMap}
 /**
  * Trait to define the behavior of a "vertex map," i.e. the set of adjacency lists for a graph.
  *
+ * The adjacency list (of type AdjacencyList[X]) for a vertex (type V) points to edges of type X which, in turn, reference
+ * vertices of type Vertex[V, X].
+ *
  * There are two distinct types of VertexMap:
  * <ol>
  * <li>Those that can be ordered according to type V (these will use a TreeMap)</li>
@@ -202,9 +205,10 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
      * @return a new Visitor[V, J].
      */
     def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
-        vertexMap.values foreach (_.reset())
-        BaseVertexMap.findAndMarkVertex(vertexMap, Some(v), s"DFS initialization")
-        recursiveDFS(visitor, v)
+        initializeDfs(v)
+        val result = recursiveDFS(visitor, v)
+        result.close()
+        result
     }
 
     /**
@@ -236,6 +240,11 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
             case Some(z) => recursiveDFS(visitor, z)
             case None => visitor
         }
+
+    private def initializeDfs[J](v: V): Unit = {
+        vertexMap.values foreach (_.reset())
+        BaseVertexMap.findAndMarkVertex(vertexMap, Some(v), s"DFS initialization")
+    }
 
     private def buildMap(base: Map[V, Vertex[V, X]], v: V, x: X, vv: Vertex[V, X]) = base + (v -> (vv addEdge x))
 }

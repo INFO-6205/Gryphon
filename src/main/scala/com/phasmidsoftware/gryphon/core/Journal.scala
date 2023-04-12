@@ -72,6 +72,11 @@ trait FileWriterJournal[V] extends Journal[FileWriter, V] {
     def append(j: FileWriter, v: V): FileWriter = { j.append(s"$v\n"); j }
 }
 
+/**
+ * Companion object to Journal.
+ *
+ * Here, you may find the various implicit object which extend Journal[J, V].
+ */
 object Journal {
     implicit object StringBuilderJournalInt$$ extends StringBuilderJournal[Int]
 
@@ -81,5 +86,11 @@ object Journal {
 
     implicit object IterableJournalStackInt$$ extends IterableJournalStack[Int]
 
+    implicit object StringBuilderJournalString$$ extends StringBuilderJournal[String]
+
+    implicit object FileWriterJournalString$$ extends FileWriterJournal[String]
+
     implicit object IterableJournalQueueString$$ extends IterableJournalQueue[String]
+
+    implicit object IterableJournalStackString$$ extends IterableJournalStack[String]
 }
