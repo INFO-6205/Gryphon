@@ -13,16 +13,16 @@ class VertexSpec extends AnyFlatSpec with should.Matchers {
 
     it should "degree" in {
         Vertex.empty("A").degree shouldBe 0
-        Vertex.empty("A").addEdge(DirectedEdge("A", "B", "ab")).degree shouldBe 1
+        Vertex.empty("A").addEdge(DirectedEdgeCase("A", "B", "ab")).degree shouldBe 1
     }
 
     it should "adjacent" in {
         Vertex.empty("A").adjacent shouldBe AdjacencyList.empty
-        Vertex.empty("A").addEdge(DirectedEdge("A", "B", "ab")).adjacent shouldBe AdjacencyList(Seq(DirectedEdge("A", "B", "ab")))
+        Vertex.empty("A").addEdge(DirectedEdgeCase("A", "B", "ab")).adjacent shouldBe AdjacencyList(Seq(DirectedEdgeCase("A", "B", "ab")))
     }
 
     it should "addEdge" in {
-        val a = Vertex.empty[String, DirectedEdge[String, String]]("A")
-        a.addEdge(DirectedEdge("A", "B", "ab")) shouldBe new ConcreteVertex("A", AdjacencyList(Seq(DirectedEdge("A", "B", "ab")))) // leave "new" intact.
+        val a = Vertex.empty[String, DirectedEdgeCase[String, String]]("A")
+        a.addEdge(DirectedEdgeCase("A", "B", "ab")) shouldBe new VertexCase("A", AdjacencyList(Seq(DirectedEdgeCase("A", "B", "ab")))) // leave "new" intact.
     }
 }

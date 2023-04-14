@@ -77,7 +77,7 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
  */
-case class ConcreteVertex[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
+case class VertexCase[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
 
     /**
      * Method to construct a new ConcreteVersion based on the types V and X.
@@ -85,9 +85,9 @@ case class ConcreteVertex[V, X <: EdgeLike[V]](attribute: V, adjacent: Adjacency
      * @param adjacent an AdjacencyList[Y].
      * @tparam W the vertex-type of the result (W must be a super-type of V).
      * @tparam Y the edge-type of the resulting AbstractVertex
-     * @return a new ConcreteVertex[W, Y].
+     * @return a new VertexCase[W, Y].
      */
-    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y] = ConcreteVertex[W, Y](attribute, adjacent)
+    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y] = VertexCase[W, Y](attribute, adjacent)
 }
 
 object Vertex {
@@ -97,9 +97,9 @@ object Vertex {
      * @param a (V) the (key) attribute of the result.
      * @tparam V the underlying vertex-type of the result.
      * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
-     * @return an empty ConcreteVertex[V, X].
+     * @return an empty VertexCase[V, X].
      */
-    def empty[V, X <: EdgeLike[V]](a: V): Vertex[V, X] = ConcreteVertex[V, X](a, AdjacencyList.empty)
+    def empty[V, X <: EdgeLike[V]](a: V): Vertex[V, X] = VertexCase[V, X](a, AdjacencyList.empty)
 }
 
 /**

@@ -1,7 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.core.BaseVertexMap.findAndMarkVertex
 import com.phasmidsoftware.gryphon.core.Queueable.QueueableQueue
+import com.phasmidsoftware.gryphon.core.VertexMap.findAndMarkVertex
 import scala.annotation.tailrec
 import scala.collection.immutable.{HashMap, Queue, TreeMap}
 
@@ -73,30 +73,30 @@ trait VertexMap[V, X <: EdgeLike[V]] extends Traversable[V] {
  *           Requires implicit evidence of type Ordering[V].
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  */
-case class OrderedVertexMap[V: Ordering, X <: EdgeLike[V]](map: TreeMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) {
+case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V]](map: TreeMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) {
 
     /**
-     * Method to construct a new OrderedVertexMap from the given map.
+     * Method to construct a new OrderedVertexMapCase from the given map.
      *
      * @param map a TreeMap. If it is not a TreeMap, it will be converted to one.
-     * @return a new OrderedVertexMap[V, X].
+     * @return a new OrderedVertexMapCase[V, X].
      */
-    def unit(map: Map[V, Vertex[V, X]]): OrderedVertexMap[V, X] = OrderedVertexMap[V, X](map.to(TreeMap))
+    def unit(map: Map[V, Vertex[V, X]]): OrderedVertexMapCase[V, X] = OrderedVertexMapCase[V, X](map.to(TreeMap))
 }
 
 /**
- * Companion object to OrderedVertexMap.
+ * Companion object to OrderedVertexMapCase.
  */
-object OrderedVertexMap {
+object OrderedVertexMapCase {
     /**
-     * Method to yield an empty OrderedVertexMap.
+     * Method to yield an empty OrderedVertexMapCase.
      *
      * @tparam V the (key) vertex-attribute type.
      *           Requires implicit evidence of type Ordering[V].
      * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
-     * @return an empty OrderedVertexMap[V, X].
+     * @return an empty OrderedVertexMapCase[V, X].
      */
-    def empty[V: Ordering, X <: EdgeLike[V]]: VertexMap[V, X] = OrderedVertexMap(TreeMap.empty[V, Vertex[V, X]])
+    def empty[V: Ordering, X <: EdgeLike[V]]: VertexMap[V, X] = OrderedVertexMapCase(TreeMap.empty[V, Vertex[V, X]])
 }
 
 
@@ -107,29 +107,29 @@ object OrderedVertexMap {
  * @tparam V the (key) vertex-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  */
-case class UnorderedVertexMap[V, X <: EdgeLike[V]](map: HashMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) {
+case class UnorderedVertexMapCase[V, X <: EdgeLike[V]](map: HashMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) {
 
     /**
-     * Method to construct a new UnorderedVertexMap from the given map.
+     * Method to construct a new UnorderedVertexMapCase from the given map.
      *
      * @param map a HashMap. If it is not a HashMap, it will be converted to one.
-     * @return a new UnorderedVertexMap[V, X].
+     * @return a new UnorderedVertexMapCase[V, X].
      */
-    def unit(map: Map[V, Vertex[V, X]]): UnorderedVertexMap[V, X] = UnorderedVertexMap[V, X](map.to(HashMap))
+    def unit(map: Map[V, Vertex[V, X]]): UnorderedVertexMapCase[V, X] = UnorderedVertexMapCase[V, X](map.to(HashMap))
 }
 
 /**
- * Companion object to UnorderedVertexMap.
+ * Companion object to UnorderedVertexMapCase.
  */
-object UnorderedVertexMap {
+object UnorderedVertexMapCase {
     /**
-     * Method to yield an empty UnorderedVertexMap.
+     * Method to yield an empty UnorderedVertexMapCase.
      *
      * @tparam V the (key) vertex-attribute type.
      * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
-     * @return an empty UnorderedVertexMap[V, X].
+     * @return an empty UnorderedVertexMapCase[V, X].
      */
-    def empty[V, X <: EdgeLike[V]]: VertexMap[V, X] = UnorderedVertexMap(HashMap.empty[V, Vertex[V, X]])
+    def empty[V, X <: EdgeLike[V]]: VertexMap[V, X] = UnorderedVertexMapCase(HashMap.empty[V, Vertex[V, X]])
 }
 
 /**
@@ -262,7 +262,7 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
     }
 
     private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], x: X) =
-        BaseVertexMap.findAndMarkVertex(vertexMap, x.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") match {
+        VertexMap.findAndMarkVertex(vertexMap, x.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") match {
             case Some(z) => recursiveDFS(visitor, z)
             case None => visitor
         }
@@ -314,13 +314,13 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]
 
     private def initializeVisits[J](v: V): Unit = {
         vertexMap.values foreach (_.reset())
-        BaseVertexMap.findAndMarkVertex(vertexMap, Some(v), s"initializeVisits")
+        VertexMap.findAndMarkVertex(vertexMap, Some(v), s"initializeVisits")
     }
 
     private def buildMap(base: Map[V, Vertex[V, X]], v: V, x: X, vv: Vertex[V, X]) = base + (v -> (vv addEdge x))
 }
 
-object BaseVertexMap {
+object VertexMap {
     /**
      * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
      * and, if not, marks it as discovered then returns it, wrapped in Some.

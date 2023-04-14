@@ -17,45 +17,45 @@ trait Edge[V, +E] extends EdgeLike[V] with Attributed[E]
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
-case class DirectedEdge[V, E](from: V, to: V, attribute: E) extends BaseDirectedEdge[V, E](from, to, attribute)
+case class DirectedEdgeCase[V, E](from: V, to: V, attribute: E) extends BaseDirectedEdge[V, E](from, to, attribute)
 
 /**
  * Class to represent a directed, ordered edge from <code>from</code> to <code>to</code>.
  * For example, an edge with a weighting.
  *
- * @param from (V) start vertex attribute (key).
- * @param to (V) the end vertex attribute (key).
+ * @param from      (V) start vertex attribute (key).
+ * @param to        (V) the end vertex attribute (key).
  * @param attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the Edge type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[E].
  */
-case class DirectedOrderedEdge[V, E: Ordering](from: V, to: V, attribute: E) extends BaseDirectedOrderedEdge[V, E](from, to, attribute)
+case class DirectedOrderedEdgeCase[V, E: Ordering](from: V, to: V, attribute: E) extends BaseDirectedOrderedEdge[V, E](from, to, attribute)
 
 /**
  * Class to represent an undirected edge between <code>v1</code> and <code>v2</code>.
  *
- * @param v1 (V) a vertex attribute (key).
- * @param v2 (V) the other vertex attribute (key).
+ * @param v1        (V) a vertex attribute (key).
+ * @param v2        (V) the other vertex attribute (key).
  * @param attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
-case class UndirectedEdge[V: Ordering, E](v1: V, v2: V, attribute: E) extends BaseUndirectedEdge[V, E](v1, v2, attribute)
+case class UndirectedEdgeCase[V: Ordering, E](v1: V, v2: V, attribute: E) extends BaseUndirectedEdge[V, E](v1, v2, attribute)
 
 /**
  * Class to represent an undirected, ordered edge between <code>v1</code> and <code>v2</code>.
  *
- * @param v1 (V) a vertex attribute (key).
- * @param v2 (V) the other vertex attribute (key).
+ * @param v1        (V) a vertex attribute (key).
+ * @param v2        (V) the other vertex attribute (key).
  * @param attribute (E) the edge attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[E].
  */
-case class UndirectedOrderedEdge[V: Ordering, E: Ordering](v1: V, v2: V, attribute: E) extends BaseUndirectedOrderedEdge[V, E](v1, v2, attribute)
+case class UndirectedOrderedEdgeCase[V: Ordering, E: Ordering](v1: V, v2: V, attribute: E) extends BaseUndirectedOrderedEdge[V, E](v1, v2, attribute)
 
 /**
  * Abstract base class to represent an undirected edge.
@@ -178,7 +178,7 @@ abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, ov
  * @param v2 another vertex.
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  */
-case class VertexPair[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2)
+case class VertexPairCase[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2)
 
 /**
  * Abstract base class to represent a connection between a pair of vertices that are not connected by an explicit edge object.
