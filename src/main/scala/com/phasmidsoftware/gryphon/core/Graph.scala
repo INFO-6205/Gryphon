@@ -8,7 +8,7 @@ package com.phasmidsoftware.gryphon.core
  *
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
- * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ * @tparam X the type of edge which connects two vertices. A sub-type of Edge[V,E].
  *
  */
 trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[String] with Traversable[V] {
@@ -88,6 +88,43 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[Strin
     def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = vertexMap.bfsMutable[J, Q](visitor)(v)
 }
 
+/**
+ * Trait to define the behavior of a graph-like object.
+ *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam E the edge-attribute type.
+ */
+trait GraphLike[V, E]
+
+/**
+ * Trait to define the behavior of a directed graph.
+ *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam E the edge-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of DirectedEdge[V,E].
+ */
+trait DirectedGraph[V, E, X <: DirectedEdge[V, E]] extends Graph[V, E, X]
+
+/**
+ * Trait to define the behavior of an undirected graph.
+ *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam E the edge-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of UndirectedEdge[V,E].
+ */
+trait UndirectedGraph[V, E, X <: UndirectedEdge[V, E]] extends Graph[V, E, X]
+
+/**
+ * Abstract class to represent a graph.
+ *
+ * The attribute type for a Graph is always String. CONSIDER relaxing this.
+ * The edge and vertex attributes are whatever you like (E and V respectively -- see below).
+ *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam E the edge-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of Edge[V,E].
+ *
+ */
 abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __description: String, val __vertexMap: VertexMap[V, X]) extends Graph[V, E, X] {
 
     /**
@@ -120,8 +157,16 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E]](val __description: String, v
     def unit(vertexMap: VertexMap[V, X]): AbstractGraph[V, E, X]
 }
 
-trait DirectedGraph[V, E, X <: DirectedEdge[V, E]] extends Graph[V, E, X]
-
+/**
+ * Abstract class to represent a directed graph.
+ *
+ * The attribute type for a Graph is always String. CONSIDER relaxing this.
+ * The edge and vertex attributes are whatever you like (E and V respectively -- see below).
+ *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam E the edge-attribute type.
+ *
+ */
 abstract class AbstractDirectedGraph[V, E](val _description: String, val _vertexMap: VertexMap[V, DirectedEdge[V, E]]) extends AbstractGraph[V, E, DirectedEdge[V, E]](_description, _vertexMap) with DirectedGraph[V, E, DirectedEdge[V, E]] {
     /**
      * Method to yield all edges of this AbstractDirectedGraph.
@@ -142,8 +187,16 @@ abstract class AbstractDirectedGraph[V, E](val _description: String, val _vertex
         unit(_vertexMap.addEdge(x.from, x).addVertex(x.to))
 }
 
-trait UndirectedGraph[V, E, X <: UndirectedEdge[V, E]] extends Graph[V, E, X]
-
+/**
+ * Abstract class to represent an undirected graph.
+ *
+ * The attribute type for a Graph is always String. CONSIDER relaxing this.
+ * The edge and vertex attributes are whatever you like (E and V respectively -- see below).
+ *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam E the edge-attribute type.
+ *
+ */
 abstract class AbstractUndirectedGraph[V, E](val _description: String, val _vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractGraph[V, E, UndirectedEdge[V, E]](_description, _vertexMap) with UndirectedGraph[V, E, UndirectedEdge[V, E]] {
     /**
      * Method to yield all edges of this AbstractUndirectedGraph.
@@ -165,15 +218,7 @@ abstract class AbstractUndirectedGraph[V, E](val _description: String, val _vert
 }
 
 /**
- * Trait to define the behavior of a graph-like object.
- *
- * @tparam V the (key) vertex-attribute type.
- * @tparam E the edge-attribute type.
- */
-trait GraphLike[V, E]
-
-/**
- * A class to represent a DirectedGraphCase.
+ * A case class to represent a DirectedGraph.
  *
  * @param vertexMap its vertex map, i.e. the map of adjacency lists.
  * @tparam V the (key) vertex-attribute type.
@@ -191,7 +236,25 @@ case class DirectedGraphCase[V, E](description: String, vertexMap: VertexMap[V, 
 }
 
 /**
- * Companion object of DirectedGraphCase.
+ * A case class to represent an undirectedGraph.
+ *
+ * @param vertexMap its vertex map, i.e. the map of adjacency lists.
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam E the edge-attribute type.
+ */
+case class UndirectedGraphCase[V, E](description: String, vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractUndirectedGraph[V, E](description, vertexMap) with UndirectedGraph[V, E, UndirectedEdge[V, E]] {
+
+    /**
+     * Method to create a new UndirectedGraphCase from a given vertex map.
+     *
+     * @param vertexMap the vertex map.
+     * @return a new UndirectedGraphCase[V, E].
+     */
+    def unit(vertexMap: VertexMap[V, UndirectedEdge[V, E]]): AbstractGraph[V, E, UndirectedEdge[V, E]] = UndirectedGraphCase(description, vertexMap)
+}
+
+/**
+ * Object to provide non-instance directed graph properties.
  */
 object DirectedGraph {
     /**
@@ -216,27 +279,8 @@ object DirectedGraph {
     def createOrdered[V: Ordering, E](description: String): DirectedGraph[V, E, DirectedEdge[V, E]] = DirectedGraphCase(description, OrderedVertexMap.empty[V, DirectedEdge[V, E]])
 }
 
-
 /**
- * A class to represent an undirectedGraph.
- *
- * @param vertexMap its vertex map, i.e. the map of adjacency lists.
- * @tparam V the (key) vertex-attribute type.
- * @tparam E the edge-attribute type.
- */
-case class UndirectedGraphCase[V, E](description: String, vertexMap: VertexMap[V, UndirectedEdge[V, E]]) extends AbstractUndirectedGraph[V, E](description, vertexMap) with UndirectedGraph[V, E, UndirectedEdge[V, E]] {
-
-    /**
-     * Method to create a new UndirectedGraphCase from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new UndirectedGraphCase[V, E].
-     */
-    def unit(vertexMap: VertexMap[V, UndirectedEdge[V, E]]): AbstractGraph[V, E, UndirectedEdge[V, E]] = UndirectedGraphCase(description, vertexMap)
-}
-
-/**
- * Companion object of UndirectedGraphCase.
+ * Object to provide non-instance undirected graph properties.
  */
 object UndirectedGraph {
     /**

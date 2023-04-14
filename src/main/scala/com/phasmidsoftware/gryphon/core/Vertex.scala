@@ -34,6 +34,13 @@ trait Vertex[V, +X <: EdgeLike[V]] extends VertexLike[V] {
 }
 
 /**
+ * Trait to model the behavior of a vertex-like object.
+ *
+ * @tparam V the (covariant) attribute type.
+ */
+trait VertexLike[+V] extends Attributed[V]
+
+/**
  * Abstract base class to represent an vertex.
  *
  * @tparam V the key (attribute) type of this Vertex.
@@ -93,6 +100,9 @@ case class VertexCase[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList
     def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y] = VertexCase[W, Y](attribute, adjacent)
 }
 
+/**
+ * Object to provide non-instance vertex properties.
+ */
 object Vertex {
     /**
      * Method to construct an empty Vertex.
@@ -104,10 +114,3 @@ object Vertex {
      */
     def empty[V, X <: EdgeLike[V]](a: V): Vertex[V, X] = VertexCase[V, X](a, AdjacencyList.empty)
 }
-
-/**
- * Trait to model the behavior of a vertex-like object.
- *
- * @tparam V the (covariant) attribute type.
- */
-trait VertexLike[+V] extends Attributed[V]

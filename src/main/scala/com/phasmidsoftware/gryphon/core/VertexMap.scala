@@ -43,6 +43,17 @@ trait VertexMap[V, +X <: EdgeLike[V]] extends Traversable[V] {
      */
     def adjacentEdges(v: V): Seq[X] = optAdjacencyList(v).toSeq.flatMap(_.xs)
 
+
+    /**
+     * Method to get a sequence of the adjacent edges for vertex with key (attribute) v.\
+     * that also satisfy the predicate given.
+     *
+     * @param v the key (attribute) of the vertex whose adjacency list we require.
+     * @param p a predicate of type X => Boolean.
+     * @return <code>adjacentEdges(v) filter p</code>.
+     */
+    def adjacentEdgesWithFilter(v: V)(p: X => Boolean): Seq[X] = adjacentEdges(v) filter p
+
     /**
      * the vertex-type values, i.e. the keys, of this VertexMap.
      */
