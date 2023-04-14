@@ -58,6 +58,14 @@ case class UndirectedEdgeCase[V: Ordering, E](v1: V, v2: V, attribute: E) extend
 case class UndirectedOrderedEdgeCase[V: Ordering, E: Ordering](v1: V, v2: V, attribute: E) extends BaseUndirectedOrderedEdge[V, E](v1, v2, attribute)
 
 /**
+ * Trait to represent an UndirectedEdge.
+ *
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
+ * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
+ */
+trait UndirectedEdge[V, +E] extends Edge[V, E] with Undirected[V]
+
+/**
  * Abstract base class to represent an undirected edge.
  *
  * @param _v1        (V) one vertex attribute (key).
@@ -67,7 +75,7 @@ case class UndirectedOrderedEdgeCase[V: Ordering, E: Ordering](v1: V, v2: V, att
  *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
-abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute: E) extends Edge[V, E] with Undirected[V] {
+abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute: E) extends UndirectedEdge[V, E] {
     /**
      * Value of _v1.
      *
@@ -100,6 +108,14 @@ abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute
 }
 
 /**
+ * Trait to represent a DirectedEdge.
+ *
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
+ * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
+ */
+trait DirectedEdge[V, +E] extends Edge[V, E] with Directed[V]
+
+/**
  * Abstract base class for a directed edge.
  *
  * @param _from      (V) the start vertex attribute (key).
@@ -108,7 +124,7 @@ abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute: E) extends Edge[V, E] with Directed[V] {
+abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute: E) extends DirectedEdge[V, E]  {
     /**
      * The two vertices in the natural order: _from, _to.
      */
@@ -127,6 +143,14 @@ abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute:
 }
 
 /**
+ * Trait to represent an undirected ordered edge.
+ *
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
+ * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
+ */
+trait UndirectedOrderedEdge[V, E] extends UndirectedEdge[V, E] with Ordering[E]
+
+/**
  * Abstract base class for an undirected, ordered edge.
  * For example, an edge with a weighting.
  *
@@ -138,16 +162,37 @@ abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute:
  * @tparam E the Edge type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[E].
  */
-abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: V, override val _attribute: E) extends BaseUndirectedEdge[V, E](_v1, _v2, _attribute) with Ordered[Edge[V, E]] {
+abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: V, override val _attribute: E) extends BaseUndirectedEdge[V, E](_v1, _v2, _attribute) with UndirectedOrderedEdge[V, E] with Ordered[Edge[V, E]] {
+
+    /**
+     * Method to compare x (E) attribute with y (E).
+     *
+     * CONSIDER do we actually need this?
+     *
+     * @param e1 an E value.
+     * @param e2 an E value.
+     * @return -1, 0, or 1 depending on the ordering of e1 and e2.
+     */
+    def compare(e1: E, e2: E): Int = implicitly[Ordering[E]].compare(e1, e2)
 
     /**
      * Method to compare this edge with that edge.
+     *
+     * CONSIDER do we actually need this?
      *
      * @param that another edge.
      * @return -1, 0, or 1 depending on the ordering of this and that edges.
      */
     def compare(that: Edge[V, E]): Int = OrderedEdge.compare(this, that)
 }
+
+/**
+ * Trait to represent an directed ordered edge.
+ *
+ * @tparam V the Vertex key type, i.e. the type of its attribute.
+ * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
+ */
+trait DirectedOrderedEdge[V, E] extends DirectedEdge[V, E] with Ordering[E]
 
 /**
  * Abstract base class for an directed, ordered edge.
@@ -160,7 +205,19 @@ abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: 
  * @tparam E the Edge type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[E].
  */
-abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, override val _to: V, override val _attribute: E) extends BaseDirectedEdge[V, E](_from, _to, _attribute) with Ordered[Edge[V, E]] {
+abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, override val _to: V, override val _attribute: E) extends BaseDirectedEdge[V, E](_from, _to, _attribute) with DirectedOrderedEdge[V, E] with Ordered[Edge[V, E]] {
+
+    /**
+     * Method to compare x (E) attribute with y (E).
+     *
+     * CONSIDER do we actually need this?
+     *
+     * @param e1 an E value.
+     * @param e2 an E value.
+     * @return -1, 0, or 1 depending on the ordering of e1 and e2.
+     */
+    def compare(e1: E, e2: E): Int = implicitly[Ordering[E]].compare(e1, e2)
+
 
     /**
      * Method to compare this edge with that edge.
