@@ -382,5 +382,3 @@ object VertexMap {
     }
 
 }
-
-//abstract class BaseOrderedVertexMap[V: Ordering, X <: EdgeLike[V]](val __map: TreeMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](__map) with OrderedVertexMap[V, X]
