@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.core
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-trait Edge[V, +E] extends EdgeLike[V] with Attributed[E]
+trait Edge[+V, +E] extends EdgeLike[V] with Attributed[E]
 
 /**
  * Class to represent a directed edge from <code>from</code> to <code>to</code>.
@@ -63,7 +63,7 @@ case class UndirectedOrderedEdgeCase[V: Ordering, E: Ordering](v1: V, v2: V, att
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-trait UndirectedEdge[V, +E] extends Edge[V, E] with Undirected[V]
+trait UndirectedEdge[+V, +E] extends Edge[V, E] with Undirected[V]
 
 /**
  * Abstract base class to represent an undirected edge.
@@ -75,7 +75,7 @@ trait UndirectedEdge[V, +E] extends Edge[V, E] with Undirected[V]
  *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
-abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute: E) extends UndirectedEdge[V, E] {
+abstract class BaseUndirectedEdge[+V: Ordering, E](_v1: V, _v2: V, val _attribute: E) extends UndirectedEdge[V, E] {
     /**
      * Value of _v1.
      *
@@ -87,10 +87,10 @@ abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute
      * Method to return the other end of this edge from the given vertex <code>v</code>.
      * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
      *
-     * @param v (V) the given vertex key (attribute).
+     * @param w (V) the given vertex key (attribute).
      * @return an optional vertex key.
      */
-    def other(v: V): Option[V] = Option.when(v == _v1)(_v2) orElse Option.when(v == _v2)(_v1)
+    def other[W >: V](w: W): Option[W] = Option.when(w == _v1)(_v2) orElse Option.when(w == _v2)(_v1)
 
     /**
      * Method to get the two vertices of this edge in some deterministic order, based on the implicit value of Ordering[V].
@@ -113,7 +113,7 @@ abstract class BaseUndirectedEdge[V: Ordering, E](_v1: V, _v2: V, val _attribute
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-trait DirectedEdge[V, +E] extends Edge[V, E] with Directed[V]
+trait DirectedEdge[+V, +E] extends Edge[V, E] with Directed[V]
 
 /**
  * Abstract base class for a directed edge.
@@ -124,7 +124,7 @@ trait DirectedEdge[V, +E] extends Edge[V, E] with Directed[V]
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute: E) extends DirectedEdge[V, E]  {
+abstract class BaseDirectedEdge[+V, +E](val _from: V, val _to: V, val _attribute: E) extends DirectedEdge[V, E] {
     /**
      * The two vertices in the natural order: _from, _to.
      */
@@ -134,10 +134,10 @@ abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute:
      * Method to return the "to"" end of this directed edge provided that the given vertex
      * is is the same as _from (in which case None) will be returned.
      *
-     * @param v (V) the given vertex key (attribute).
+     * @param w (V) the given vertex key (attribute).
      * @return an optional vertex key.
      */
-    def other(v: V): Option[V] = Option.when(v == _from)(_to)
+    def other[W >: V](w: W): Option[W] = Option.when(w == _from)(_to)
 
     override def toString: String = s"${_from}--(${_attribute})-->${_to}"
 }
@@ -148,7 +148,7 @@ abstract class BaseDirectedEdge[V, +E](val _from: V, val _to: V, val _attribute:
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-trait UndirectedOrderedEdge[V, E] extends UndirectedEdge[V, E] with Ordering[E]
+trait UndirectedOrderedEdge[+V, E] extends UndirectedEdge[V, E] with Ordering[E]
 
 /**
  * Abstract base class for an undirected, ordered edge.
@@ -192,7 +192,7 @@ abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: 
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
-trait DirectedOrderedEdge[V, E] extends DirectedEdge[V, E] with Ordering[E]
+trait DirectedOrderedEdge[+V, E] extends DirectedEdge[V, E] with Ordering[E]
 
 /**
  * Abstract base class for an directed, ordered edge.
@@ -264,10 +264,11 @@ abstract class BaseVertexPair[V](_v1: V, _v2: V) extends Edge[V, Unit] {
      *
      * TESTME
      *
-     * @param v (V) the given vertex key (attribute).
+     * @param w (V) the given vertex key (attribute).
      * @return an optional vertex key.
      */
-    def other(v: V): Option[V] = Option.when(v == _v1)(_v2) orElse Option.when(v == _v2)(_v1)
+    def other[W >: V](w: W): Option[W]
+    = Option.when(w == _v1)(_v2) orElse Option.when(w == _v2)(_v1)
 
     override def toString: String = s"${_v1}:${_v2}"
 }
@@ -277,7 +278,7 @@ abstract class BaseVertexPair[V](_v1: V, _v2: V) extends Edge[V, Unit] {
  *
  * @tparam V the Vertex key type.
  */
-trait EdgeLike[V] {
+trait EdgeLike[+V] {
 
     /**
      * The two vertices of this Edge in a (possibly) arbitrary but deterministic order.
@@ -288,10 +289,10 @@ trait EdgeLike[V] {
      * Method to return the other end of this undirected edge from the given vertex <code>v</code>.
      * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
      *
-     * @param v (V) the given vertex key (attribute).
+     * @param w (V) the given vertex key (attribute).
      * @return an optional vertex key.
      */
-    def other(v: V): Option[V]
+    def other[W >: V](w: W): Option[W]
 }
 
 /**
@@ -299,7 +300,7 @@ trait EdgeLike[V] {
  *
  * @tparam V the Vertex key type.
  */
-trait Directed[V] extends EdgeLike[V] {
+trait Directed[+V] extends EdgeLike[V] {
     /**
      * @return (V) start vertex attribute (key).
      */
@@ -316,7 +317,7 @@ trait Directed[V] extends EdgeLike[V] {
  *
  * @tparam V the Vertex key type.
  */
-trait Undirected[V] extends EdgeLike[V] {
+trait Undirected[+V] extends EdgeLike[V] {
     /**
      * Value of one of the vertices.
      * This method is deterministic thus always gives the same result for a particular edge.

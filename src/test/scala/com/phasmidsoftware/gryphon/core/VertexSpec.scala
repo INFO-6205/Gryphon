@@ -23,6 +23,7 @@ class VertexSpec extends AnyFlatSpec with should.Matchers {
 
     it should "addEdge" in {
         val a = Vertex.empty[String, DirectedEdgeCase[String, String]]("A")
+        //noinspection RedundantNewCaseClass
         a.addEdge(DirectedEdgeCase("A", "B", "ab")) shouldBe new VertexCase("A", AdjacencyList(Seq(DirectedEdgeCase("A", "B", "ab")))) // leave "new" intact.
     }
 }

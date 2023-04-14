@@ -64,6 +64,8 @@ trait VertexMap[V, X <: EdgeLike[V]] extends Traversable[V] {
     def addEdge(v: V, x: X): VertexMap[V, X]
 }
 
+trait OrderedVertexMap[V, X <: EdgeLike[V]] extends VertexMap[V, X]
+
 /**
  * Case class to represent an ordered VertexMap.
  * The ordering is based on the key (V) type.
@@ -73,7 +75,7 @@ trait VertexMap[V, X <: EdgeLike[V]] extends Traversable[V] {
  *           Requires implicit evidence of type Ordering[V].
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  */
-case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V]](map: TreeMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) {
+case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V]](map: TreeMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) with OrderedVertexMap[V, X] {
 
     /**
      * Method to construct a new OrderedVertexMapCase from the given map.
@@ -81,13 +83,13 @@ case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V]](map: TreeMap[V, V
      * @param map a TreeMap. If it is not a TreeMap, it will be converted to one.
      * @return a new OrderedVertexMapCase[V, X].
      */
-    def unit(map: Map[V, Vertex[V, X]]): OrderedVertexMapCase[V, X] = OrderedVertexMapCase[V, X](map.to(TreeMap))
+    def unit(map: Map[V, Vertex[V, X]]): OrderedVertexMap[V, X] = OrderedVertexMapCase[V, X](map.to(TreeMap))
 }
 
 /**
  * Companion object to OrderedVertexMapCase.
  */
-object OrderedVertexMapCase {
+object OrderedVertexMap {
     /**
      * Method to yield an empty OrderedVertexMapCase.
      *
@@ -96,9 +98,10 @@ object OrderedVertexMapCase {
      * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
      * @return an empty OrderedVertexMapCase[V, X].
      */
-    def empty[V: Ordering, X <: EdgeLike[V]]: VertexMap[V, X] = OrderedVertexMapCase(TreeMap.empty[V, Vertex[V, X]])
+    def empty[V: Ordering, X <: EdgeLike[V]]: OrderedVertexMap[V, X] = OrderedVertexMapCase(TreeMap.empty[V, Vertex[V, X]])
 }
 
+trait UnorderedVertexMap[V, X <: EdgeLike[V]] extends VertexMap[V, X]
 
 /**
  * Case class to represent an unordered VertexMap.
@@ -107,7 +110,8 @@ object OrderedVertexMapCase {
  * @tparam V the (key) vertex-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  */
-case class UnorderedVertexMapCase[V, X <: EdgeLike[V]](map: HashMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) {
+case class UnorderedVertexMapCase[V, X <: EdgeLike[V]](map: HashMap[V, Vertex[V, X]]) extends BaseVertexMap[V, X](map) with UnorderedVertexMap[V, X] {
+
 
     /**
      * Method to construct a new UnorderedVertexMapCase from the given map.
@@ -115,13 +119,13 @@ case class UnorderedVertexMapCase[V, X <: EdgeLike[V]](map: HashMap[V, Vertex[V,
      * @param map a HashMap. If it is not a HashMap, it will be converted to one.
      * @return a new UnorderedVertexMapCase[V, X].
      */
-    def unit(map: Map[V, Vertex[V, X]]): UnorderedVertexMapCase[V, X] = UnorderedVertexMapCase[V, X](map.to(HashMap))
+    def unit(map: Map[V, Vertex[V, X]]): VertexMap[V, X] = UnorderedVertexMapCase[V, X](map.to(HashMap))
 }
 
 /**
  * Companion object to UnorderedVertexMapCase.
  */
-object UnorderedVertexMapCase {
+object UnorderedVertexMap {
     /**
      * Method to yield an empty UnorderedVertexMapCase.
      *
@@ -129,7 +133,7 @@ object UnorderedVertexMapCase {
      * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
      * @return an empty UnorderedVertexMapCase[V, X].
      */
-    def empty[V, X <: EdgeLike[V]]: VertexMap[V, X] = UnorderedVertexMapCase(HashMap.empty[V, Vertex[V, X]])
+    def empty[V, X <: EdgeLike[V]]: UnorderedVertexMap[V, X] = UnorderedVertexMapCase(HashMap.empty[V, Vertex[V, X]])
 }
 
 /**

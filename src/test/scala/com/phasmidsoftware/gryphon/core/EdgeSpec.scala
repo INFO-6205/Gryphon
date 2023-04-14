@@ -29,6 +29,7 @@ class EdgeSpec extends AnyFlatSpec with should.Matchers {
 
     it should "apply" in {
         val target: DirectedEdgeCase[Color, Color] = DirectedEdgeCase(red, blue, Color("green"))
+        //noinspection RedundantNewCaseClass
         target shouldBe new DirectedEdgeCase(red, blue, Color("green")) // leave "new" intact
     }
 
@@ -94,6 +95,7 @@ class EdgeSpec extends AnyFlatSpec with should.Matchers {
 
     it should "apply" in {
         val target: UndirectedEdgeCase[String, Color] = UndirectedEdgeCase("A", "B", Color("C"))
+        //noinspection RedundantNewCaseClass
         target shouldBe new UndirectedEdgeCase("A", "B", Color("C")) // leave "new" intact
     }
 
