@@ -6,14 +6,15 @@ package com.phasmidsoftware.gryphon.core
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
-trait Vertex[V, X <: EdgeLike[V]] extends VertexLike[V] {
+trait Vertex[V, +X <: EdgeLike[V]] extends VertexLike[V] {
     /**
      * Method to add an edge (x) to this Vertex.
      *
-     * @param x the EdgeLike[V] object to be added this Vertex.
-     * @return
+     * @param y the EdgeLike[V] object to be added this Vertex.
+     *          @tparam Y a super-type of X.
+     * @return a Vertex[V, Y]
      */
-    def addEdge(x: X): Vertex[V, X]
+    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y]
 
     /**
      * The adjacency list, an AdjacencyList[X], for this Vertex.
@@ -53,10 +54,11 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
     /**
      * Method to add an edge to this AbstractVertex.
      *
-     * @param x the edge to add.
+     * @param y the edge to add.
+     *          @tparam Y a super-type of X.
      * @return a new AbstractVertex which includes the new edge in its adjacency list.
      */
-    def addEdge(x: X): Vertex[V, X] = unit(AdjacencyList(x +: adjacent.xs))
+    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y] = unit(AdjacencyList(y +: adjacent.xs))
 
     /**
      * Method to construct a new AbstractVertex.
@@ -78,6 +80,7 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
  * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
  */
 case class VertexCase[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
+
 
     /**
      * Method to construct a new ConcreteVersion based on the types V and X.
