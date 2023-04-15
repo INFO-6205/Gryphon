@@ -185,6 +185,14 @@ abstract class AbstractDirectedGraph[V, E](val _description: String, val _vertex
      */
     def addEdge(x: DirectedEdge[V, E]): AbstractGraph[V, E, DirectedEdge[V, E]] =
         unit(_vertexMap.addEdge(x.from, x).addVertex(x.to))
+
+    /**
+     * (abstract) Method to create a new AbstractGraph from a given vertex map.
+     *
+     * @param vertexMap the vertex map.
+     * @return a new AbstractGraph[V, E].
+     */
+    def unit(vertexMap: VertexMap[V, DirectedEdge[V, E]]): AbstractGraph[V, E, DirectedEdge[V, E]]
 }
 
 /**
@@ -281,6 +289,8 @@ object DirectedGraph {
 
 /**
  * Object to provide non-instance undirected graph properties.
+ *
+ * TODO undirected graphs always have orderable vertices.
  */
 object UndirectedGraph {
     /**

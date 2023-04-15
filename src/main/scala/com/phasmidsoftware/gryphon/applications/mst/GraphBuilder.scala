@@ -14,7 +14,6 @@ object GraphBuilder {
             s = Source.fromURL(u)
         } yield for {
             string <- s.getLines()
-            _ = println(string)
             Array(wV1, wV2, wE) = string.split(" ")
         } yield for {
             v1 <- fv(wV1)
@@ -22,20 +21,19 @@ object GraphBuilder {
             e <- fe(wE)
         } yield (v1, v2, e)
 
-        eysy map (eys => println(eys.toSeq))
-
-        val esy: Try[List[UndirectedEdge[V, E]]] = for {
+        val esy: Try[List[UndirectedOrderedEdge[V, E]]] = for {
             eys <- eysy
             es <- sequence(eys)
         } yield for {
             (v1, v2, e) <- es
-            edge = UndirectedEdgeCase(v1, v2, e)
+            edge = UndirectedOrderedEdgeCase(v1, v2, e)
         } yield edge
 
-        esy map {
-            val graph: Graph[V, E, UndirectedEdge[V, E]] = UndirectedGraph[V, E]("no title")
+        val z: Try[Graph[V, E, UndirectedOrderedEdge[V, E]]] = esy map {
+            val graph: Graph[V, E, UndirectedOrderedEdge[V, E]] = UndirectedGraph[V, E]("no title").asInstanceOf[Graph[V, E, UndirectedOrderedEdge[V, E]]]
             es => es.foldLeft(graph)((g, e) => g.addEdge(e))
         }
+        z.asInstanceOf[Try[Graph[V, E, UndirectedEdge[V, E]]]]
     }
 
     private def sequence[V, E](eys: Iterator[Try[(V, V, E)]]): Try[List[(V, V, E)]] =
