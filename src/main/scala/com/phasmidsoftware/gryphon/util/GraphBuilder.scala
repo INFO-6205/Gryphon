@@ -1,4 +1,4 @@
-package com.phasmidsoftware.gryphon.applications.mst
+package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.gryphon.core._
 import java.net.URL

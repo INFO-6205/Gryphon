@@ -101,7 +101,7 @@ trait OrderedVertexMap[V, +X <: EdgeLike[V]] extends VertexMap[V, X] {
     def addEdgeWithVertex[Y >: X <: EdgeLike[V]](y: Y): (Some[V], OrderedVertexMap[V, Y]) = {
         val (v1, v2) = y.vertices
         val (in, out) = if (contains(v1)) (v1, v2) else (v2, v1)
-        Some(out) -> addEdge(in, y).asInstanceOf[OrderedVertexMap[V, X]]
+        Some(out) -> addVertex(out).addEdge(in, y).asInstanceOf[OrderedVertexMap[V, X]]
     }
 
 }

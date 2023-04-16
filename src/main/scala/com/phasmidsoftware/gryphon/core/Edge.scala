@@ -32,6 +32,14 @@ trait EdgeLike[+V] {
      * @return an optional vertex key.
      */
     def other[W >: V](w: W): Option[W]
+
+    /**
+     * Method to determine if w is one of the vertices of this EdgeLike object.
+     *
+     * @param w (V) the given vertex key (attribute).
+     * @return true if w is a vertex else false.
+     */
+    def meets[W >: V](w: W): Boolean = vertices._1 == w || vertices._2 == w
 }
 
 /**

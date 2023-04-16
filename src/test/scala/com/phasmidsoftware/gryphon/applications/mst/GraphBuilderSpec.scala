@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
-import com.phasmidsoftware.gryphon.applications.mst.GraphBuilder.{createFromUndirectedEdgeList, resource}
+import com.phasmidsoftware.gryphon.util.GraphBuilder.{createFromUndirectedEdgeList, resource}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success, Try}
