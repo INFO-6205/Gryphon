@@ -43,7 +43,6 @@ trait VertexMap[V, +X <: EdgeLike[V]] extends Traversable[V] {
      */
     def adjacentEdges(v: V): Seq[X] = optAdjacencyList(v).toSeq.flatMap(_.xs)
 
-
     /**
      * Method to get a sequence of the adjacent edges for vertex with key (attribute) v.\
      * that also satisfy the predicate given.
@@ -170,6 +169,8 @@ object UnorderedVertexMap {
 
 /**
  * Abstract base class to define general VertexMap properties.
+ *
+ * CONSIDER rename Base as Abstract
  *
  * @param _map a Map of V -> Vertex[V, X].
  * @tparam V the (key) vertex-attribute type.
@@ -358,7 +359,18 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]
         VertexMap.findAndMarkVertex(vertexMap, Some(v), s"initializeVisits")
     }
 
-    private def buildMap[Y >: X <: EdgeLike[V]](base: Map[V, Vertex[V, Y]], v: V, x: Y, vv: Vertex[V, Y]) = base + (v -> (vv addEdge x))
+    /**
+     * Build a VertexMap from the given map (m) and the edge y at vertex v.
+     * TODO revert to private.
+     *
+     * @param m  the existing Map.
+     * @param v  the vertex (key) at which to update the adjacency list.
+     * @param y  the edge to be added.
+     * @param vv the existing adjacency list for vertex v.
+     * @tparam Y the type of the ege to be added.
+     * @return a new Map.
+     */
+    def buildMap[Y >: X <: EdgeLike[V]](m: Map[V, Vertex[V, Y]], v: V, y: Y, vv: Vertex[V, Y]): Map[V, Vertex[V, Y]] = m + (v -> (vv addEdge y))
 }
 
 object VertexMap {
@@ -380,5 +392,4 @@ object VertexMap {
             }
         case None => throw GraphException(errorMessage)
     }
-
 }

@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.collection.immutable.Queue
+import scala.collection.immutable.{HashMap, Queue}
 
 class VertexMapSpec extends AnyFlatSpec with should.Matchers {
 
@@ -72,6 +72,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
 
     private val red: Color = Color("red")
     private val blue: Color = Color("blue")
+    private val green: Color = Color("green")
 
     it should "keys" in {
         val target: VertexMap[Color, DirectedEdgeCase[Color, Int]] = UnorderedVertexMap.empty
@@ -98,4 +99,21 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
         targetUpdated.edges.isEmpty shouldBe true
     }
 
+    it should "buildMap" in {
+        val target: BaseVertexMap[Color, DirectedEdge[Color, Int]] = UnorderedVertexMap.empty[Color, DirectedEdge[Color, Int]].asInstanceOf[BaseVertexMap[Color, DirectedEdge[Color, Int]]]
+        val edge42: DirectedEdge[Color, Int] = DirectedEdgeCase(red, blue, 42)
+        val edge17: DirectedEdge[Color, Int] = DirectedEdgeCase(red, green, 17)
+        val m1 = new HashMap[Color, Vertex[Color, DirectedEdge[Color, Int]]]()
+        val vRed = Vertex.empty(red)
+        val m2: Map[Color, Vertex[Color, DirectedEdge[Color, Int]]] = target.buildMap(m1, red, edge42, vRed)
+        m2 shouldBe new HashMap[Color, Vertex[Color, DirectedEdge[Color, Int]]] + (red -> VertexCase(red, AdjacencyList(List(edge42))))
+        val vBlue = Vertex.empty(blue)
+        val vGreen = Vertex.empty(green)
+        val m3: Map[Color, Vertex[Color, DirectedEdge[Color, Int]]] = target.buildMap(m2, blue, edge42, vBlue)
+        m3 shouldBe m2 + (blue -> VertexCase(blue, AdjacencyList(List(edge42))))
+        val m4: Map[Color, Vertex[Color, DirectedEdge[Color, Int]]] = target.buildMap(m3, red, edge17, vRed)
+        m4 shouldBe m3 + (red -> VertexCase(red, AdjacencyList(List(edge17))))
+        val m5: Map[Color, Vertex[Color, DirectedEdge[Color, Int]]] = target.buildMap(m4, green, edge17, vGreen)
+        m5 shouldBe m4 + (green -> VertexCase(green, AdjacencyList(List(edge17))))
+    }
 }

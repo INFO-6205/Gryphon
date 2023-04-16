@@ -221,7 +221,7 @@ abstract class AbstractUndirectedGraph[V, E](val _description: String, val _vert
      */
     def addEdge(x: UndirectedEdge[V, E]): AbstractGraph[V, E, UndirectedEdge[V, E]] = {
         val (v, w) = x.vertices
-        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
+        unit(_vertexMap.addEdge(v, x).addEdge(w, x))
     }
 }
 

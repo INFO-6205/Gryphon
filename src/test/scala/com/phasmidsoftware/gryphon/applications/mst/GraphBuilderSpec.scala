@@ -14,10 +14,8 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers {
          val gy = createFromUndirectedEdgeList[Int, Double](uy)(w => Try(w.toInt), w => Try(w.toDouble))
         gy match {
             case Success(g) =>
-                println(g)
                 val edges = g.edges
-                edges foreach println
-//                edges.size shouldBe 16
+                edges.size shouldBe 16
             case Failure(x) => throw x
         }
 

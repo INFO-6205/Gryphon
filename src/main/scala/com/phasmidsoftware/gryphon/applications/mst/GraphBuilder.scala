@@ -21,7 +21,7 @@ object GraphBuilder {
             e <- fe(wE)
         } yield (v1, v2, e)
 
-        val esy: Try[List[UndirectedOrderedEdge[V, E]]] = for {
+        val esy = for {
             eys <- eysy
             es <- sequence(eys)
         } yield for {
@@ -29,11 +29,11 @@ object GraphBuilder {
             edge = UndirectedOrderedEdgeCase(v1, v2, e)
         } yield edge
 
-        val z: Try[Graph[V, E, UndirectedOrderedEdge[V, E]]] = esy map {
+        esy map {
+            // CONSIDER avoiding the two asInstanceOf calls
             val graph: Graph[V, E, UndirectedOrderedEdge[V, E]] = UndirectedGraph[V, E]("no title").asInstanceOf[Graph[V, E, UndirectedOrderedEdge[V, E]]]
-            es => es.foldLeft(graph)((g, e) => g.addEdge(e))
+            es => es.foldLeft(graph)((g, e) => g.addEdge(e)).asInstanceOf[Graph[V, E, UndirectedEdge[V, E]]]
         }
-        z.asInstanceOf[Try[Graph[V, E, UndirectedEdge[V, E]]]]
     }
 
     private def sequence[V, E](eys: Iterator[Try[(V, V, E)]]): Try[List[(V, V, E)]] =
@@ -50,7 +50,6 @@ object GraphBuilder {
     }
 
     def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
-
 }
 
 object PrimDemo extends App {
