@@ -87,7 +87,24 @@ trait VertexMap[V, +X <: EdgeLike[V]] extends Traversable[V] {
     def addEdge[Y >: X <: EdgeLike[V]](v: V, y: Y): VertexMap[V, Y]
 }
 
-trait OrderedVertexMap[V, +X <: EdgeLike[V]] extends VertexMap[V, X]
+trait OrderedVertexMap[V, +X <: EdgeLike[V]] extends VertexMap[V, X] {
+
+    /**
+     * This method adds an edge y (Y) to this OrderedVertexMap and returns
+     * a tuple formed from the new vertex and the new VertexMap.
+     * This is particularly used in Prim's algorithm (and maybe Dijkstra's algorithm, too).
+     *
+     * @param y the edge to be added.
+     * @tparam Y the edge type.
+     * @return a tuple as described above.
+     */
+    def addEdgeWithVertex[Y >: X <: EdgeLike[V]](y: Y): (Some[V], OrderedVertexMap[V, Y]) = {
+        val (v1, v2) = y.vertices
+        val (in, out) = if (contains(v1)) (v1, v2) else (v2, v1)
+        Some(out) -> addEdge(in, y).asInstanceOf[OrderedVertexMap[V, X]]
+    }
+
+}
 
 /**
  * Case class to represent an ordered VertexMap.

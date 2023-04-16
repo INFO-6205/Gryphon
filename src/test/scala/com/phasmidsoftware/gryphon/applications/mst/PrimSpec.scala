@@ -30,6 +30,7 @@ class PrimSpec extends AnyFlatSpec with should.Matchers {
                 mst.edges foreach println
                 mst.vertices foreach println
                 mst.edges.size shouldBe 7
+                // FIXME
 //                mst.vertices.size shouldBe 8
             case Failure(x) => throw x
         }

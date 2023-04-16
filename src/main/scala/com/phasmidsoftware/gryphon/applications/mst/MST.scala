@@ -48,11 +48,6 @@ class Prim[V: Ordering, E: Ordering] extends BaseMST[V, E] {
      * @return the MST for graph.
      */
     def mst(graph: UndirectedGraph[V, E, UndirectedOrderedEdge[V, E]]): UndirectedGraph[V, E, UndirectedEdge[V, E]] = {
-        def processMinimumEdge(vertexMap: OrderedVertexMap[V, UndirectedOrderedEdge[V, E]], edge: UndirectedOrderedEdge[V, E]) = {
-            val (v1, v2) = edge.vertices
-            val (in, out) = if (vertexMap.contains(v1)) (v1, v2) else (v2, v1)
-            Some(out) -> vertexMap.addEdge(in, edge).asInstanceOf[OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]]
-        }
 
         val vertexMapGraph: VertexMap[V, UndirectedOrderedEdge[V, E]] = graph.vertexMap
         implicit object UndirectedEdgeOrdering extends Ordering[UndirectedOrderedEdge[V, E]] {
@@ -75,7 +70,7 @@ class Prim[V: Ordering, E: Ordering] extends BaseMST[V, E] {
                     val ws = vertexMapGraph.adjacentEdgesWithFilter(v)(x => !m.contains(x.other(v).get))
                     ws foreach (w => pq.addOne(w))
                     if (pq.isEmpty) None -> m
-                    else processMinimumEdge(m, pq.dequeue())
+                    else m.addEdgeWithVertex(pq.dequeue())
                 case (None, _) => t
             }
 
