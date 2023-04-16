@@ -197,7 +197,10 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]
      * @param v the (key) attribute of the result.
      * @return a new AbstractGraph[V, E, X].
      */
-    def addVertex(v: V): VertexMap[V, X] = unit(_map + (v -> Vertex.empty[V, X](v)))
+    def addVertex(v: V): VertexMap[V, X] = unit(_map + (v -> (_map.get(v) match {
+        case Some(vv) => vv
+        case None => Vertex.empty(v)
+    })))
 
     /**
      * Method to add an edge to this VertexMap.

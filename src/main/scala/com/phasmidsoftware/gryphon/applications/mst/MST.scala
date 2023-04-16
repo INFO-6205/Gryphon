@@ -48,13 +48,18 @@ class Prim[V: Ordering, E: Ordering] extends BaseMST[V, E] {
      * @return the MST for graph.
      */
     def mst(graph: UndirectedGraph[V, E, UndirectedOrderedEdge[V, E]]): UndirectedGraph[V, E, UndirectedEdge[V, E]] = {
+        def processMinimumEdge(vertexMap: OrderedVertexMap[V, UndirectedOrderedEdge[V, E]], edge: UndirectedOrderedEdge[V, E]) = {
+            val (v1, v2) = edge.vertices
+            val (in, out) = if (vertexMap.contains(v1)) (v1, v2) else (v2, v1)
+            Some(out) -> vertexMap.addEdge(in, edge).asInstanceOf[OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]]
+        }
+
         val vertexMapGraph: VertexMap[V, UndirectedOrderedEdge[V, E]] = graph.vertexMap
         implicit object UndirectedEdgeOrdering extends Ordering[UndirectedOrderedEdge[V, E]] {
 
             def compare(x: UndirectedOrderedEdge[V, E], y: UndirectedOrderedEdge[V, E]): Int = OrderedEdge.compare(x, y)
         }
         val pq = new mutable.PriorityQueue[UndirectedOrderedEdge[V, E]]
-
 
         /**
          * Method to grow the tree according to Prim's algorithm.
@@ -63,23 +68,23 @@ class Prim[V: Ordering, E: Ordering] extends BaseMST[V, E] {
          * @param t a tuple consisting of (the vertex most recently added to the tree, the current VertexMap).
          * @return a tuple of (most recently added vertex, new vertex map).
          */
-        def grow(t: (V, OrderedVertexMap[V, UndirectedOrderedEdge[V, E]])): (V, OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]) = {
-            // CONSIDER putting some of this logic into VertexMap
-            val (v, m) = t
-            val ws = vertexMapGraph.adjacentEdgesWithFilter(v)(x => !m.contains(x.other(v).get))
-            ws foreach (w => pq.addOne(w))
-            val x = pq.dequeue()
-            val (v1, v2) = x.vertices
-            val (in, out) = if (m.contains(v1)) (v1, v2) else (v2, v1)
-            out -> m.addEdge(in, x).asInstanceOf[OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]]
-        }
+        def grow(t: (Option[V], OrderedVertexMap[V, UndirectedOrderedEdge[V, E]])): (Option[V], OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]) =
+            t match {
+                case (Some(v), m) =>
+                    // CONSIDER putting some of this logic into VertexMap
+                    val ws = vertexMapGraph.adjacentEdgesWithFilter(v)(x => !m.contains(x.other(v).get))
+                    ws foreach (w => pq.addOne(w))
+                    if (pq.isEmpty) None -> m
+                    else processMinimumEdge(m, pq.dequeue())
+                case (None, _) => t
+            }
 
         // Starting at an arbitrary vertex of the graph (we pick the head of the vertices list),
         // gradually build up the VertexMap of the MST by invoking grow V-1 times where V is the number of vertices.
         val (_, vertexMapResult) = graph.vertices.headOption match {
             case Some(v) =>
-                val start: (V, OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]) = v -> OrderedVertexMap[V, UndirectedOrderedEdge[V, E]](v).asInstanceOf[OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]]
-                Range(0, vertexMapGraph.size - 1).foldLeft(start) { (m, _) => grow(m) }
+                val start: (Option[V], OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]) = Some(v) -> OrderedVertexMap[V, UndirectedOrderedEdge[V, E]](v).asInstanceOf[OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]]
+                Range(0, vertexMapGraph.size).foldLeft(start) { (m, _) => grow(m) }
             case None => throw GraphException("Prim.mst: empty graph")
         }
 
