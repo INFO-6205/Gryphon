@@ -2,6 +2,7 @@ package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.core._
 import com.phasmidsoftware.gryphon.util.LazyPriorityQueue
+import scala.util.Try
 
 /**
  * Trait to model the behavior of a minimum spanning tree.
@@ -96,3 +97,13 @@ class LazyPrim[V: Ordering, E: Ordering] extends BaseMST[V, E] {
         UndirectedGraphCase[V, E](s"MST for graph ${graph.attribute}", vertexMapResult)
     }
 }
+
+trait EdgeData[V, E] {
+    def vertex1: V
+
+    def vertex2: V
+
+    def edge: E
+}
+
+case class EdgeDataMST[V, E](vertex1: V, vertex2: V, edge: E) extends EdgeData[V, E]
