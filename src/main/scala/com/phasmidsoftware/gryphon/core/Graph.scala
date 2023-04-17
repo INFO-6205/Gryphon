@@ -94,7 +94,11 @@ trait Graph[V, E, X <: Edge[V, E]] extends GraphLike[V, E] with Attributed[Strin
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
  */
-trait GraphLike[V, E]
+trait GraphLike[V, E] {
+    def isCyclic: Boolean = true
+
+    def isBipartite: Boolean = false
+}
 
 /**
  * Trait to define the behavior of a directed graph.

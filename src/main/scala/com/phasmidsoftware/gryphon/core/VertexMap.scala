@@ -195,6 +195,8 @@ object UnorderedVertexMap {
  */
 abstract class BaseVertexMap[V, +X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]]) extends VertexMap[V, X] {
 
+    require(_map != null, "BaseVertexMap: _map is null")
+
     def contains(v: V): Boolean = _map.contains(v)
 
     def size: Int = _map.size

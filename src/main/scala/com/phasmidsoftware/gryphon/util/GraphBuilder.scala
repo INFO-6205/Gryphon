@@ -33,9 +33,11 @@ object GraphBuilder {
 
     def createGraphFromUndirectedOrderedEdges[E: Ordering : CellParser, V: Ordering : CellParser](esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[Graph[V, E, UndirectedEdge[V, E]]] =
         esy map {
-            // CONSIDER avoiding the two asInstanceOf calls
-            val graph: Graph[V, E, UndirectedOrderedEdge[V, E]] = UndirectedGraph[V, E]("no title").asInstanceOf[Graph[V, E, UndirectedOrderedEdge[V, E]]]
-            es => es.foldLeft(graph)((g, e) => g.addEdge(e)).asInstanceOf[Graph[V, E, UndirectedEdge[V, E]]]
+            es =>
+                println(s"edges: ${es.size}")
+                // CONSIDER avoiding the two asInstanceOf calls
+                val graph: Graph[V, E, UndirectedOrderedEdge[V, E]] = UndirectedGraph[V, E]("no title").asInstanceOf[Graph[V, E, UndirectedOrderedEdge[V, E]]]
+                es.foldLeft(graph)((g, e) => g.addEdge(e)).asInstanceOf[Graph[V, E, UndirectedEdge[V, E]]]
         }
 
     private def sequence[V, E](eys: Iterator[Try[(V, V, E)]]): Try[List[(V, V, E)]] =
@@ -58,10 +60,13 @@ object PrimDemo extends App {
 
     import GraphBuilder._
 
-    private val uy = resource("/prim.graph")
+    private val resourceName = "/prim.graph"
+    private val uy = resource(resourceName)
     private val gy = createFromUndirectedEdgeList[Int, Double](uy)(w => Try(w.toInt), w => Try(w.toDouble))
     gy match {
-        case Success(g) => println(g)
+        case Success(g) =>
+            println(s"read ${g.size} edges from $resourceName")
+            println(g)
         case Failure(x) => throw x
     }
 }

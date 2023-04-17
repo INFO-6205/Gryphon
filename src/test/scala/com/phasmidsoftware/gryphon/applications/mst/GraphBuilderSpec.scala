@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
-import com.phasmidsoftware.gryphon.util.CsvParser.parseUndirectedEdgeList
+import com.phasmidsoftware.gryphon.util.EdgeDataParser
 import com.phasmidsoftware.gryphon.util.GraphBuilder.{createFromUndirectedEdgeList, createGraphFromUndirectedOrderedEdges, resource}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -23,8 +23,9 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "parseUndirectedEdgeList" in {
+        val parser = new EdgeDataParser[Int, Double]()
         val primGraph = "/prim.graph"
-        createGraphFromUndirectedOrderedEdges(parseUndirectedEdgeList[Int, Double](primGraph)) match {
+        createGraphFromUndirectedOrderedEdges(parser.parseEdgesFromCsv(primGraph)) match {
             case Success(g) =>
                 val edges = g.edges
                 edges.size shouldBe 16

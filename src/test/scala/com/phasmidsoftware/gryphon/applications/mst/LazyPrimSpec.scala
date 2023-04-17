@@ -1,8 +1,10 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
-import com.phasmidsoftware.gryphon.util.CsvParser.parseUndirectedEdgeList
 import com.phasmidsoftware.gryphon.util.GraphBuilder.{createFromUndirectedEdgeList, createGraphFromUndirectedOrderedEdges, resource}
+import com.phasmidsoftware.gryphon.util.{VertexDataParser, VertexDataTSP}
+import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}
+import com.phasmidsoftware.table.Table
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success, Try}
@@ -16,9 +18,8 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val edge3 = UndirectedOrderedEdgeCase("A", "D", 3)
         val edge2 = UndirectedOrderedEdgeCase("A", "C", 2)
         val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int]] = UndirectedGraph[String, Int]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2).asInstanceOf[UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int]]]
-        val target = new LazyPrim[String, Int]
-        val mst = target.mst(graph)
-        mst.edges shouldBe List(edge3, edge2, edge1)
+        val target: LazyPrim[String, Int] = LazyPrim.createFromGraph(graph)
+        target.edges shouldBe List(edge3, edge2, edge1)
     }
 
     it should "mst of Prim demo from Sedgewick & Wayne" in {
@@ -26,30 +27,61 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val esy = createFromUndirectedEdgeList[Int, Double](uy)(w => Try(w.toInt), w => Try(w.toDouble))
         createGraphFromUndirectedOrderedEdges(esy) match {
             case Success(graph) =>
-                val target = new LazyPrim[Int, Double]
-                val mst = target.mst(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double]]])
-                mst.edges.size shouldBe 7
-                mst.vertices.size shouldBe 8
-                mst.edges map (_.attribute) shouldBe List(0.26, 0.16, 0.4, 0.17, 0.35, 0.28, 0.19)
-                mst.vertices shouldBe Set(0, 1, 2, 3, 4, 5, 6, 7)
+                val prim = LazyPrim.createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double]]])
+                prim.edges.size shouldBe 7
+                prim.mst.vertices.size shouldBe 8
+                prim.edges map (_.attribute) shouldBe List(0.26, 0.16, 0.4, 0.17, 0.35, 0.28, 0.19)
             case Failure(x) => throw x
         }
     }
 
-    // FIXME
-    ignore should "mst the traveling salesman problem for INFO6205 Spring 2023" in {
+    case class Crime(id: BigInt, longitude: Double, latitude: Double) {
+        override def toString: String = s"${briefId}"
+
+        private def briefId = {
+            val str = id.toString(16)
+            str.substring(str.length - 5)
+        }
+    }
+
+    object Crime extends CellParsers {
+        private def deg2rad(deg: Double): Double = deg * (Math.PI / 180)
+
+        implicit def distance(crime1: Crime, crime2: Crime): Double = {
+            val r = 6371000 // Radius of the earth in m
+            val (lat1, lat2) = (crime1.latitude, crime2.latitude)
+            val (lon1, lon2) = (crime1.longitude, crime2.longitude)
+            val dLat = deg2rad(lat2 - lat1)
+            val dLon = deg2rad(lon2 - lon1)
+            val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+            r * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
+        }
+
+        implicit object BigIntCellParser extends SingleCellParser[BigInt] {
+            def convertString(w: String): Try[BigInt] = Try(BigInt(w, 16))
+        }
+
+        implicit val crimeCellParser: CellParser[Crime] = cellParser3(Crime.apply)
+
+        implicit object CrimeOrdering extends Ordering[Crime] {
+            def compare(x: Crime, y: Crime): Int = x.id.compare(y.id)
+        }
+    }
+
+    it should "mst the traveling salesman problem for INFO6205 Spring 2023" in {
         val spring2023Project = "/info6205.spring2023.teamproject.csv"
-        val uy = resource(spring2023Project)
-        parseUndirectedEdgeList[Int, Double](spring2023Project)
-        val esy = createFromUndirectedEdgeList[Int, Double](uy)(w => Try(w.toInt), w => Try(w.toDouble))
-        createGraphFromUndirectedOrderedEdges(esy) match {
-            case Success(graph) =>
-                val target = new LazyPrim[Int, Double]
-                val mst = target.mst(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double]]])
-                mst.edges.size shouldBe 7
-                mst.vertices.size shouldBe 8
-                mst.edges map (_.attribute) shouldBe List(0.26, 0.16, 0.4, 0.17, 0.35, 0.28, 0.19)
-                mst.vertices shouldBe Set(0, 1, 2, 3, 4, 5, 6, 7)
+        import Crime._
+        val vertexDataParser: VertexDataParser[Crime] = new VertexDataParser[Crime]()
+        implicit val tableParser: vertexDataParser.VertexDataTSPTableParser.type = vertexDataParser.VertexDataTSPTableParser
+        val cvty: Try[Table[VertexDataTSP[Crime]]] = Table.parseResource[Table[VertexDataTSP[Crime]]](spring2023Project)
+        val csy: Try[Iterable[Crime]] = cvty map (cvt => for (r <- cvt.rows) yield r.attribute)
+        csy map (LazyPrim.createFromVertices[Crime, Double](_)) match {
+            case Success(mst: MST[Crime, Double]) =>
+                mst.edges.size shouldBe 584
+                println(mst.total)
+                println(mst.edges)
             case Failure(x) => throw x
         }
 
