@@ -168,6 +168,15 @@ class EdgeSpec extends AnyFlatSpec with should.Matchers {
         ab.other(ab.vertex) shouldBe Some("B")
         val ba = UndirectedOrderedEdgeCase("B", "A", "has")
         ba.other(ba.vertex) shouldBe Some("A")
+        ba.other("C") shouldBe None
+    }
+
+    it should "otherVertex" in {
+        val ab = UndirectedOrderedEdgeCase("A", "B", "isa")
+        ab.otherVertex(ab.vertex) shouldBe "B"
+        val ba = UndirectedOrderedEdgeCase("B", "A", "has")
+        ba.otherVertex(ba.vertex) shouldBe "A"
+        a[GraphException] should be thrownBy ba.otherVertex("C")
     }
 
     it should "compare with other edge" in {

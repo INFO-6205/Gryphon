@@ -67,20 +67,20 @@ case class LazyPrim[V: Ordering, E: Ordering](mst: Tree[V, E]) extends BaseMST[V
 object LazyPrim {
     /**
      * Method to calculate the Minimum Spanning Tree of a graph using the LazyPrim algorithm.
-     *
      * @param graph the graph whose MST is required.
      * @return the MST for graph.
      */
     def createFromGraph[V: Ordering, E: Ordering](graph: UndirectedGraph[V, E, UndirectedOrderedEdge[V, E]]): LazyPrim[V, E] = {
         /**
          * Method to yield the candidate edges from the given set of vertices.
+         * TODO merge this method with candidateEdges in createFromVertices.
          *
          * @param v the most recent vertex to have been added to Prim's tree (or the starting vertex).
          * @param m the current vertex map.
          * @return a set of edges which are candidates to be added to Prim's tree.
          */
         def candidateEdges(v: V, m: OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]): Iterable[UndirectedOrderedEdge[V, E]] =
-            graph.vertexMap.adjacentEdgesWithFilter(v)(x => notInTree(v, m, x))
+            graph.vertexMap.adjacentEdgesWithFilter(v)(x => !m.containsOther(v, x))
 
         LazyPrim(TreeCase[V, E](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
     }
@@ -105,15 +105,12 @@ object LazyPrim {
                 w <- vertices
                 vo = implicitly[Ordering[V]]
                 eo = implicitly[Ordering[E]]
-                x = createEdgeFromVertices(v, w)(vo, eo, d) if notInTree(v, m, x)
+                x = createEdgeFromVertices(v, w)(vo, eo, d) if !m.containsOther(v, x)
             } yield
                 x
 
         LazyPrim(TreeCase[V, E](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
     }
-
-    private def notInTree[E: Ordering, V: Ordering](v: V, m: OrderedVertexMap[V, UndirectedOrderedEdge[V, E]], x: UndirectedOrderedEdge[V, E]) =
-        !m.contains(x.other(v).get)
 
     private def doLazyPrim[V: Ordering, E: Ordering](vs: Iterable[V], candidateEdges: (V, OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]) => Iterable[UndirectedOrderedEdge[V, E]]): OrderedVertexMap[V, UndirectedOrderedEdge[V, E]] = {
 

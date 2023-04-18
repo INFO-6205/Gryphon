@@ -23,8 +23,28 @@ import scala.collection.immutable.{HashMap, Queue, TreeMap}
 trait VertexMap[V, +X <: EdgeLike[V]] extends Traversable[V] {
     self =>
 
+    /**
+     * Method to determine if this VertexMap contains a vertex with attribute v.
+     *
+     * @param v the attribute of the vertex.
+     * @return true if this VertexMap contains a vertex with attribute v.
+     */
     def contains(v: V): Boolean
 
+    /**
+     * Method to determine if this VertexMap contains a vertex at the other end of the given edge from the vertex with attribute v.
+     *
+     * @param v the attribute of the vertex.
+     * @param x (Y >: X <: EdgeLike[V]) an edge.
+     * @return true if this VertexMap contains the vertex at the other end of x from v.
+     */
+    def containsOther[Y >: X <: EdgeLike[V]](v: V, x: Y): Boolean = contains(x.otherVertex(v))
+
+    /**
+     * Method to yield the number of adjacency lists defined in this VertexMap.
+     *
+     * @return the size of this VertexMap.
+     */
     def size: Int
 
     /**

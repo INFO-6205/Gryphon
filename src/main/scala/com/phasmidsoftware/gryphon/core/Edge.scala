@@ -1,5 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.util.Util
+
 /**
  * Trait to model the behavior of an Edge.
  *
@@ -36,10 +38,18 @@ trait EdgeLike[+V] {
     /**
      * Method to determine if w is one of the vertices of this EdgeLike object.
      *
-     * @param w (V) the given vertex key (attribute).
+     * @param w (>: V) the given vertex key (attribute).
      * @return true if w is a vertex else false.
      */
     def meets[W >: V](w: W): Boolean = vertices._1 == w || vertices._2 == w
+
+    /**
+     * Method to get the other vertex of this edge when we are reasonably sure that the other vertex is defined.
+     *
+     * @param w (>: V) the given vertex key (attribute).
+     * @return the vertex at the other end of this edge from v.
+     */
+    def otherVertex[W >: V](w: W): W = Util.getOrThrow(other(w), GraphException(s"Edge.otherVertex: $w does not belong to edge $this "))
 }
 
 /**
@@ -185,7 +195,7 @@ abstract class BaseUndirectedEdge[+V: Ordering, +E](_v1: V, _v2: V, val _attribu
      */
     val vertices: (V, V) = {
         val v = if (implicitly[Ordering[V]].compare(_v1, _v2) <= 0) _v1 else _v2
-        v -> other(v).get // NOTE this is guaranteed to have a defined value.
+        v -> otherVertex(v) // XXX this is guaranteed to have a defined value so will not throw an exception
     }
 
     /**
