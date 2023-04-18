@@ -18,7 +18,7 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val edge3 = UndirectedOrderedEdgeCase("A", "D", 3)
         val edge2 = UndirectedOrderedEdgeCase("A", "C", 2)
         val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int]] = UndirectedGraph[String, Int]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2).asInstanceOf[UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int]]]
-        val target: LazyPrim[String, Int] = LazyPrim.createFromGraph(graph)
+        val target: LazyPrimCase[String, Int] = new LazyPrimHelper[String, Int]().createFromGraph(graph)
         target.edges shouldBe List(edge3, edge2, edge1)
     }
 
@@ -27,7 +27,7 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val esy = createFromUndirectedEdgeList[Int, Double](uy)(w => Try(w.toInt), w => Try(w.toDouble))
         createGraphFromUndirectedOrderedEdges(esy) match {
             case Success(graph) =>
-                val prim = LazyPrim.createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double]]])
+                val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double]]])
                 prim.edges.size shouldBe 7
                 prim.mst.vertices.size shouldBe 8
                 prim.edges map (_.attribute) shouldBe List(0.26, 0.16, 0.4, 0.17, 0.35, 0.28, 0.19)
@@ -85,7 +85,7 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         implicit val tableParser: vertexDataParser.VertexDataTSPTableParser.type = vertexDataParser.VertexDataTSPTableParser
         val cvty: Try[Table[VertexDataTSP[Crime]]] = Table.parseResource[Table[VertexDataTSP[Crime]]](spring2023Project)
         val csy: Try[Iterable[Crime]] = cvty map (cvt => for (r <- cvt.rows) yield r.attribute)
-        csy map (LazyPrim.createFromVertices[Crime, Double](_)) match {
+        csy map (new LazyPrimHelper[Crime, Double]().createFromVertices(_)) match {
             case Success(mst: MST[Crime, Double]) =>
                 mst.edges.size shouldBe 584
                 println(mst.total)
