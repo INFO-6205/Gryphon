@@ -18,17 +18,6 @@ trait MST[V, E] {
 }
 
 /**
- * Trait to model the behavior of a minimum spanning tree.
- * This works only for undirected graphs.
- *
- * @tparam V the vertex (key) attribute type.
- * @tparam E the edge type.
- */
-//trait VertexMST[V] {
-//    def createFromGraph(vertices: Seq[V]): UndirectedGraph[V, Double, UndirectedEdge[V, Double]]
-//}
-
-/**
  * Abstract class to implement MST[V, E].
  *
  * @tparam V the vertex (key) attribute type.
@@ -37,18 +26,6 @@ trait MST[V, E] {
  *           Requires implicit evidence of type Ordering[E].
  */
 abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E]) extends MST[V, E] {
-
-    println(s"new BaseMST based on ${_mst}")
-//
-//     def addEdge(x: UndirectedEdge[V, E]): Graph[V, E, UndirectedEdge[V, E]] = _mst.addEdge(x)
-//
-//     def addVertex(v: V): AbstractGraph[V, E, UndirectedEdge[V, E]] = _mst.addVertex(v)
-//
-//      def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = _mst.dfs(visitor)(v)
-//
-//     def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = _mst.bfs(visitor)(v)
-//
-//     def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = _mst.bfsMutable(visitor)(v)(ev)
 
     def isCyclic: Boolean = _mst.isCyclic
 
@@ -64,10 +41,6 @@ abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E]) extends MST[V
  *           Requires implicit evidence of type Ordering[E].
  */
 case class LazyPrim[V: Ordering, E: Ordering](mst: Tree[V, E]) extends BaseMST[V, E](mst) {
-
-    {
-        println(s"new LazyPrim based on $mst")
-    }
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -94,6 +67,8 @@ object LazyPrim {
 
     /**
      * Abstract method to calculate the Minimum Spanning Tree of a graph.
+     *
+     * Merge these two methods
      *
      * @param graph the graph whose MST is required.
      * @return the MST for graph.
@@ -133,7 +108,6 @@ object LazyPrim {
                 case (None, _) => t
             }
 
-
         // Starting at an arbitrary vertex of the graph (we pick the head of the vertices list),
         // gradually build up the VertexMap of the MST by invoking grow V-1 times where V is the number of vertices.
         val (_, vertexMapResult) = graph.vertices.headOption match {
@@ -143,10 +117,7 @@ object LazyPrim {
             case None => throw GraphException("LazyPrim.mst: empty graph")
         }
 
-        // Return an undirected graph based on the generated vertexMap.
-        val tree = TreeCase[V, E](s"MST for graph ${graph.attribute}", vertexMapResult)
-        println(tree)
-        LazyPrim(tree)
+        LazyPrim(TreeCase[V, E](s"MST for graph ${graph.attribute}", vertexMapResult))
     }
 
     def createFromVertices[V: Ordering, E: Ordering](vertices: Iterable[V])(implicit d: (V, V) => E): LazyPrim[V, E] = {
@@ -191,6 +162,4 @@ object LazyPrim {
         }
         LazyPrim(TreeCase[V, E](s"MST for graph from vertices", vertexMapResult))
     }
-
-
 }

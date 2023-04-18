@@ -21,14 +21,17 @@ trait VertexData[V] {
  *
  * In particular, this class is used to parse from a CSV file when an edge is shows in the form "v1 v2 e".
  *
- * @param vertex one vertex's attribute.
+ * @param attribute one vertex's attribute.
  * @tparam V the vertex attribute type (a label, typically).
  */
-case class VertexDataTSP[V: Ordering : CellParser](attribute: V) extends VertexData[V] {
-}
+case class VertexDataTSP[V: Ordering : CellParser](attribute: V) extends VertexData[V]
 
+/**
+ * Parser to parse vertex data.
+ *
+ * @tparam V requires implicit evidence of Ordering and CellParser.
+ */
 class VertexDataParser[V: Ordering : CellParser] {
-
 
     object VertexDataTSPParser extends CellParsers {
 
@@ -42,24 +45,6 @@ class VertexDataParser[V: Ordering : CellParser] {
 
         val parser: StandardRowParser[VertexDataTSP[V]] = StandardRowParser.create[VertexDataTSP[V]]
     }
-
-    //    implicit val parser: StandardRowParser[Movie] = StandardRowParser.create[Movie]
-    //
-    //    trait MovieTableParser extends StringTableParser[Table[Movie]] {
-    //        type Row = Movie
-    //
-    //        val maybeFixedHeader: Option[Header] = None
-    //
-    //        val headerRowsToRead: Int = 1
-    //
-    //        override val forgiving: Boolean = true
-    //
-    //        val rowParser: RowParser[Row, String] = implicitly[RowParser[Row, String]]
-    //
-    //        protected def builder(rows: Iterable[Movie], header: Header): Table[Row] = HeadedTable(rows, header)
-    //    }
-    //
-    //    implicit object MovieTableParser extends MovieTableParser
 
     trait VertexDataTSPTableParser extends StringTableParser[Table[VertexDataTSP[V]]] {
         type Row = VertexDataTSP[V]
@@ -77,11 +62,15 @@ class VertexDataParser[V: Ordering : CellParser] {
 
     implicit object VertexDataTSPTableParser extends VertexDataTSPTableParser
 
+    /**
+     * TESTME
+     *
+     * @param resource the name of the resouce.
+     * @return a Try of Iterable[V].
+     */
     def parseVerticesFromCsv(resource: String): Try[Iterable[V]] = {
-
         val dty: Try[Table[VertexDataTSP[V]]] = Table.parseResource[Table[VertexDataTSP[V]]](resource)
 
         for (vt <- dty) yield vt.rows.map(d => d.attribute)
     }
-
 }

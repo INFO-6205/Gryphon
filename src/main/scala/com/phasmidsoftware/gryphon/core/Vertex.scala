@@ -88,7 +88,6 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
  */
 case class VertexCase[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
 
-
     /**
      * Method to construct a new ConcreteVersion based on the types V and X.
      *

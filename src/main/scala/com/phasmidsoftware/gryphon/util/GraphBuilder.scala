@@ -7,6 +7,9 @@ import scala.io.Source
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
+/**
+ * Utility class to help create graphs from edge lists, etc.
+ */
 object GraphBuilder {
 
     def createFromUndirectedEdgeList[V: Ordering, E: Ordering](uy: Try[URL])(fv: String => Try[V], fe: String => Try[E]): Try[Iterable[UndirectedOrderedEdge[V, E]]] = {
@@ -34,7 +37,6 @@ object GraphBuilder {
     def createGraphFromUndirectedOrderedEdges[E: Ordering : CellParser, V: Ordering : CellParser](esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[Graph[V, E, UndirectedEdge[V, E]]] =
         esy map {
             es =>
-                println(s"edges: ${es.size}")
                 // CONSIDER avoiding the two asInstanceOf calls
                 val graph: Graph[V, E, UndirectedOrderedEdge[V, E]] = UndirectedGraph[V, E]("no title").asInstanceOf[Graph[V, E, UndirectedOrderedEdge[V, E]]]
                 es.foldLeft(graph)((g, e) => g.addEdge(e)).asInstanceOf[Graph[V, E, UndirectedEdge[V, E]]]

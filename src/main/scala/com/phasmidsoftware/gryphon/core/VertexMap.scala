@@ -226,7 +226,7 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]
      *
      * @param v the (key) value of the vertex whose adjacency list we are adding to.
      * @param y the edge to be added to the adjacency list.
-     *          @tparam Y a super-type of X.
+     * @tparam Y a super-type of X.
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
     def addEdge[Y >: X <: EdgeLike[V]](v: V, y: Y): VertexMap[V, Y] = unit(
@@ -236,6 +236,9 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V]](val _map: Map[V, Vertex[V, X]
         }
     )
 
+    /**
+     * The map of V -> Vertex[V, X] elements.
+     */
     val vertexMap: Map[V, Vertex[V, X]] = _map
 
     /**

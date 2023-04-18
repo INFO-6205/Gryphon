@@ -35,8 +35,15 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         }
     }
 
+    /**
+     * This is data from the Kaggle UK Crime dataset.
+     *
+     * @param id        crime ID.
+     * @param longitude longitude
+     * @param latitude  latitude
+     */
     case class Crime(id: BigInt, longitude: Double, latitude: Double) {
-        override def toString: String = s"${briefId}"
+        override def toString: String = s"$briefId"
 
         private def briefId = {
             val str = id.toString(16)
@@ -45,10 +52,9 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
     }
 
     object Crime extends CellParsers {
-        private def deg2rad(deg: Double): Double = deg * (Math.PI / 180)
 
         implicit def distance(crime1: Crime, crime2: Crime): Double = {
-            val r = 6371000 // Radius of the earth in m
+            val r = 6365082 // Radius of the earth in m
             val (lat1, lat2) = (crime1.latitude, crime2.latitude)
             val (lon1, lon2) = (crime1.longitude, crime2.longitude)
             val dLat = deg2rad(lat2 - lat1)
@@ -68,6 +74,8 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         implicit object CrimeOrdering extends Ordering[Crime] {
             def compare(x: Crime, y: Crime): Int = x.id.compare(y.id)
         }
+
+        private def deg2rad(deg: Double): Double = deg * (Math.PI / 180)
     }
 
     it should "mst the traveling salesman problem for INFO6205 Spring 2023" in {
@@ -84,6 +92,5 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
                 println(mst.edges)
             case Failure(x) => throw x
         }
-
     }
 }
