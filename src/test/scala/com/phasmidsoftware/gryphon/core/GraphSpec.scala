@@ -64,20 +64,20 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
     behavior of "DirectedGraphCase"
 
     it should "create an empty graph" in {
-        val target: DirectedGraph[String, String, DirectedEdge[String, String]] = DirectedGraph[String, String]("test")
+        val target: DirectedGraph[String, String, DirectedEdge[String, String]] = DirectedGraph("test")
         target.edges shouldBe Nil
         target.vertices shouldBe Set.empty
     }
 
     it should "create a graph with one empty vertex" in {
-        val graph: DirectedGraph[String, String, DirectedEdge[String, String]] = DirectedGraph[String, String]("test")
+        val graph: DirectedGraph[String, String, DirectedEdge[String, String]] = DirectedGraph("test")
         val target = graph.addVertex(vertexA)
         target.vertices shouldBe Set(vertexA)
     }
 
     it should "dfs pre-order" in {
         import Journal._
-        val graph = DirectedGraph[String, Int]("test")
+        val graph: DirectedGraph[String, Int, DirectedEdge[String, Int]] = DirectedGraph("test")
         val target = graph.addEdge(DirectedEdgeCase("A", "B", 1)).addEdge(DirectedEdgeCase("B", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         target.dfs(visitor)("A") match {
@@ -87,7 +87,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
 
     it should "dfs reverse post-order" in {
         import Journal._
-        val graph = DirectedGraph[String, Int]("test")
+        val graph: DirectedGraph[String, Int, DirectedEdge[String, Int]] = DirectedGraph("test")
         val target = graph.addEdge(DirectedEdgeCase("A", "B", 1)).addEdge(DirectedEdgeCase("B", "C", 2))
         val visitor = Visitor.reversePostList[String]
         target.dfs(visitor)("A") match {
@@ -97,7 +97,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
 
     it should "bfs" in {
         import Journal._
-        val graph = DirectedGraph[String, Int]("test")
+        val graph: DirectedGraph[String, Int, DirectedEdge[String, Int]] = DirectedGraph("test")
         val target = graph.addEdge(DirectedEdgeCase("A", "B", 1)).addEdge(DirectedEdgeCase("B", "D", 3)).addEdge(DirectedEdgeCase("A", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         val result = target.bfs(visitor)("A")
@@ -108,7 +108,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
 
     it should "bfs with PriorityQueue" in {
         import Journal._
-        val graph = DirectedGraph[String, Int]("test")
+        val graph: DirectedGraph[String, Int, DirectedEdge[String, Int]] = DirectedGraph("test")
         val target = graph.addEdge(DirectedEdgeCase("A", "B", 1)).addEdge(DirectedEdgeCase("B", "D", 3)).addEdge(DirectedEdgeCase("A", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         import PriorityQueueable._

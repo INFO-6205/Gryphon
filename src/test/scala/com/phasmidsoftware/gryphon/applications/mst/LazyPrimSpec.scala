@@ -88,8 +88,10 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         csy map (new LazyPrimHelper[Crime, Double]().createFromVertices(_)) match {
             case Success(mst: MST[Crime, Double]) =>
                 mst.edges.size shouldBe 584
-                println(mst.total)
-                println(mst.edges)
+                val total = mst.total
+                println(total)
+                total shouldBe 512849.2 +- 0.2
+                mst.edges.toSeq.sortBy(e => e.vertex) foreach println
             case Failure(x) => throw x
         }
     }

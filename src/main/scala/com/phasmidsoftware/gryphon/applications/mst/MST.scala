@@ -13,7 +13,7 @@ import com.phasmidsoftware.gryphon.util.LazyPriorityQueue
  */
 trait MST[V, E] {
 
-    def mst: Tree[V, E]
+    def mst: Tree[V, E, UndirectedOrderedEdge[V, E]]
 
     def total(implicit en: Numeric[E]): E
 }
@@ -26,7 +26,7 @@ trait MST[V, E] {
  * @tparam E the edge type.
  *           Requires implicit evidence of type Ordering[E].
  */
-abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E]) extends MST[V, E] {
+abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E, UndirectedOrderedEdge[V, E]]) extends MST[V, E] {
 
     def isCyclic: Boolean = _mst.isCyclic
 
@@ -41,7 +41,7 @@ abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E]) extends MST[V
  * @tparam E the edge type.
  *           Requires implicit evidence of type Ordering[E].
  */
-case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E]) extends BaseMST[V, E](mst) {
+case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrderedEdge[V, E]]) extends BaseMST[V, E](mst) {
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -87,7 +87,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
         def candidateEdges(v: V, m: M): Iterable[X] =
             graph.vertexMap.adjacentEdgesWithFilter(v)(x => !m.containsOther(v, x))
 
-        LazyPrimCase(TreeCase[V, E](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
+        LazyPrimCase(TreeCase[V, E, X](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
     }
 
     /**
@@ -114,7 +114,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
             } yield
                 x
 
-        LazyPrimCase(TreeCase[V, E](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
+        LazyPrimCase(TreeCase[V, E, X](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
     }
 
     private def doLazyPrim(vs: Iterable[V], candidateEdges: (V, M) => Iterable[X]): M = {
