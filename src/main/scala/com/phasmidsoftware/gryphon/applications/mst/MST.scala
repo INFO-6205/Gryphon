@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
+import com.phasmidsoftware.gryphon.applications.mst.TSP.createEdgeFromVertices
 import com.phasmidsoftware.gryphon.core._
 import com.phasmidsoftware.gryphon.util.LazyPriorityQueue
 
@@ -79,7 +80,7 @@ object LazyPrim {
          * @return a set of edges which are candidates to be added to Prim's tree.
          */
         def candidateEdges(v: V, m: OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]): Iterable[UndirectedOrderedEdge[V, E]] =
-            graph.vertexMap.adjacentEdgesWithFilter(v)(x => !m.contains(x.other(v).get))
+            graph.vertexMap.adjacentEdgesWithFilter(v)(x => notInTree(v, m, x))
 
         LazyPrim(TreeCase[V, E](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
     }
@@ -96,14 +97,23 @@ object LazyPrim {
          * Method to yield the candidate edges from the given set of vertices.
          *
          * @param v the most recent vertex to have been added to Prim's tree (or the starting vertex).
-         * @param m ignored. TODO we should consult the current vertex map and filter it as in createFromGraph.
+         * @param m the current vertex map.
          * @return a set of edges which are candidates to be added to Prim's tree.
          */
         def candidateEdges(v: V, m: OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]): Iterable[UndirectedOrderedEdge[V, E]] =
-            for (w <- vertices) yield TSP.createEdgeFromVertices(v, w)(implicitly[Ordering[V]], implicitly[Ordering[E]], d)
+            for {
+                w <- vertices
+                vo = implicitly[Ordering[V]]
+                eo = implicitly[Ordering[E]]
+                x = createEdgeFromVertices(v, w)(vo, eo, d) if notInTree(v, m, x)
+            } yield
+                x
 
         LazyPrim(TreeCase[V, E](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
     }
+
+    private def notInTree[E: Ordering, V: Ordering](v: V, m: OrderedVertexMap[V, UndirectedOrderedEdge[V, E]], x: UndirectedOrderedEdge[V, E]) =
+        !m.contains(x.other(v).get)
 
     private def doLazyPrim[V: Ordering, E: Ordering](vs: Iterable[V], candidateEdges: (V, OrderedVertexMap[V, UndirectedOrderedEdge[V, E]]) => Iterable[UndirectedOrderedEdge[V, E]]): OrderedVertexMap[V, UndirectedOrderedEdge[V, E]] = {
 
