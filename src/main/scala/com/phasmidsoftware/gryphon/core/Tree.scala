@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.core
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
  */
-trait Tree[V, E, X <: UndirectedEdge[V, E]] extends UndirectedGraph[V, E, X] {
+trait Tree[V, E, X <: UndirectedEdge[V, E], P] extends UndirectedGraph[V, E, X, P] {
     override def isCyclic: Boolean = false // TODO we should be able to assert this
 
     override def isBipartite: Boolean = true
@@ -21,7 +21,7 @@ trait Tree[V, E, X <: UndirectedEdge[V, E]] extends UndirectedGraph[V, E, X] {
  * @tparam E the edge-attribute type.
  *
  */
-case class TreeCase[V, E, X <: UndirectedEdge[V, E]](description: String, vertexMap: VertexMap[V, X]) extends AbstractUndirectedGraph[V, E, X](description, vertexMap) with Tree[V, E, X] {
+case class TreeCase[V, E, X <: UndirectedEdge[V, E], P: HasZero](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractUndirectedGraph[V, E, X, P](description, vertexMap) with Tree[V, E, X, P] {
 
     /**
      * Method to create a new AbstractGraph from a given vertex map.
@@ -31,6 +31,6 @@ case class TreeCase[V, E, X <: UndirectedEdge[V, E]](description: String, vertex
      * @param vertexMap the vertex map.
      * @return a new AbstractGraph[V, E].
      */
-    def unit(vertexMap: VertexMap[V, X]): AbstractGraph[V, E, X] = TreeCase[V, E, X]("no description", vertexMap)
+    def unit(vertexMap: VertexMap[V, X, P]): AbstractGraph[V, E, X, P] = TreeCase("no description", vertexMap)
 
 }

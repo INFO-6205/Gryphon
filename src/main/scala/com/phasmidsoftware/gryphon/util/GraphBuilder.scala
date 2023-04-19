@@ -10,9 +10,11 @@ import scala.util.{Failure, Success, Try}
 /**
  * Utility class to help create graphs from edge lists, etc.
  */
-object GraphBuilder {
+class GraphBuilder[V: Ordering : CellParser, E: Ordering : CellParser, P: HasZero]() {
 
-    def createFromUndirectedEdgeList[V: Ordering, E: Ordering](uy: Try[URL])(fv: String => Try[V], fe: String => Try[E]): Try[Iterable[UndirectedOrderedEdge[V, E]]] = {
+    type G = Graph[V, E, UndirectedOrderedEdge[V, E], P]
+
+    def createFromUndirectedEdgeList(uy: Try[URL])(fv: String => Try[V], fe: String => Try[E]): Try[Iterable[UndirectedOrderedEdge[V, E]]] = {
         val eysy: Try[Iterator[Try[(V, V, E)]]] = for {
             u <- uy
             s = Source.fromURL(u)
@@ -34,21 +36,24 @@ object GraphBuilder {
         } yield edge
     }
 
-    def createGraphFromUndirectedOrderedEdges[E: Ordering : CellParser, V: Ordering : CellParser](esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[Graph[V, E, UndirectedEdge[V, E]]] =
+    def createGraphFromUndirectedOrderedEdges(esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[G] =
         esy map {
             es =>
                 // CONSIDER avoiding the two asInstanceOf calls
-                val graph: Graph[V, E, UndirectedOrderedEdge[V, E]] = UndirectedGraph[V, E]("no title").asInstanceOf[Graph[V, E, UndirectedOrderedEdge[V, E]]]
-                es.foldLeft(graph)((g, e) => g.addEdge(e)).asInstanceOf[Graph[V, E, UndirectedEdge[V, E]]]
+                val graph: G = UndirectedGraph[V, E, P]("no title").asInstanceOf[G]
+                es.foldLeft(graph)((g, e) => g.addEdge(e))
         }
 
-    private def sequence[V, E](eys: Iterator[Try[(V, V, E)]]): Try[List[(V, V, E)]] =
+    private def sequence(eys: Iterator[Try[(V, V, E)]]): Try[List[(V, V, E)]] =
         eys.foldLeft(Try(List[(V, V, E)]())) { (xsy, ey) =>
             (xsy, ey) match {
                 case (Success(xs), Success(e)) => Success(xs :+ e)
                 case _ => Failure(GraphException("GraphBuilder: sequence error"))
             }
         }
+}
+
+object GraphBuilder {
 
     def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
         case Some(u) => Success(u)
@@ -56,6 +61,7 @@ object GraphBuilder {
     }
 
     def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
+
 }
 
 object PrimDemo extends App {
@@ -64,7 +70,7 @@ object PrimDemo extends App {
 
     private val resourceName = "/prim.graph"
     private val uy = resource(resourceName)
-    private val gy = createFromUndirectedEdgeList[Int, Double](uy)(w => Try(w.toInt), w => Try(w.toDouble))
+    private val gy = new GraphBuilder[Int, Double, Unit]().createFromUndirectedEdgeList(uy)(w => Try(w.toInt), w => Try(w.toDouble))
     gy match {
         case Success(g) =>
             println(s"read ${g.size} edges from $resourceName")

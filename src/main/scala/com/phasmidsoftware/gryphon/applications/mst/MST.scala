@@ -13,7 +13,7 @@ import com.phasmidsoftware.gryphon.util.LazyPriorityQueue
  */
 trait MST[V, E] {
 
-    def mst: Tree[V, E, UndirectedOrderedEdge[V, E]]
+    def mst: Tree[V, E, UndirectedOrderedEdge[V, E], Unit]
 
     def total(implicit en: Numeric[E]): E
 }
@@ -26,7 +26,7 @@ trait MST[V, E] {
  * @tparam E the edge type.
  *           Requires implicit evidence of type Ordering[E].
  */
-abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E, UndirectedOrderedEdge[V, E]]) extends MST[V, E] {
+abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E, UndirectedOrderedEdge[V, E], Unit]) extends MST[V, E] {
 
     def isCyclic: Boolean = _mst.isCyclic
 
@@ -41,7 +41,7 @@ abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E, UndirectedOrde
  * @tparam E the edge type.
  *           Requires implicit evidence of type Ordering[E].
  */
-case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrderedEdge[V, E]]) extends BaseMST[V, E](mst) {
+case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrderedEdge[V, E], Unit]) extends BaseMST[V, E](mst) {
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -52,7 +52,7 @@ case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrde
     /**
      * (abstract) The vertex map.
      */
-    val vertexMap: VertexMap[V, UndirectedEdge[V, E]] = mst.vertexMap
+    val vertexMap: VertexMap[V, UndirectedEdge[V, E], Unit] = mst.vertexMap
 
     /**
      * An attribute.
@@ -67,7 +67,7 @@ case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrde
 class LazyPrimHelper[V: Ordering, E: Ordering]() {
 
     type X = UndirectedOrderedEdge[V, E]
-    type M = OrderedVertexMap[V, X]
+    type M = OrderedVertexMap[V, X, Unit]
 
     /**
      * Method to calculate the Minimum Spanning Tree of a graph using the LazyPrim algorithm.
@@ -75,7 +75,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
      * @param graph the graph whose MST is required.
      * @return the MST for graph.
      */
-    def createFromGraph(graph: UndirectedGraph[V, E, X]): LazyPrimCase[V, E] = {
+    def createFromGraph(graph: UndirectedGraph[V, E, X, Unit]): LazyPrimCase[V, E] = {
         /**
          * Method to yield the candidate edges from the given set of vertices.
          * TODO merge this method with candidateEdges in createFromVertices.
@@ -87,7 +87,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
         def candidateEdges(v: V, m: M): Iterable[X] =
             graph.vertexMap.adjacentEdgesWithFilter(v)(x => !m.containsOther(v, x))
 
-        LazyPrimCase(TreeCase[V, E, X](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
+        LazyPrimCase(TreeCase[V, E, X, Unit](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
     }
 
     /**
@@ -114,7 +114,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
             } yield
                 x
 
-        LazyPrimCase(TreeCase[V, E, X](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
+        LazyPrimCase(TreeCase[V, E, X, Unit](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
     }
 
     private def doLazyPrim(vs: Iterable[V], candidateEdges: (V, M) => Iterable[X]): M = {
@@ -153,7 +153,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
         // gradually build up the VertexMap of the MST by invoking grow V-1 times where V is the number of vertices.
         val (_, vertexMapResult) = vs.headOption match {
             case Some(v) =>
-                val start: (Option[V], M) = Some(v) -> OrderedVertexMap(v).asInstanceOf[M]
+                val start: (Option[V], M) = Some(v) -> OrderedVertexMap[V, X, Unit](v).asInstanceOf[M]
                 Range(0, vs.size).foldLeft(start) { (m, _) => grow(m) }
             case None => throw GraphException("doLazyPrim: empty vertex list")
         }

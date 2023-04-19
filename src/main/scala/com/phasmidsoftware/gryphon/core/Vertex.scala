@@ -5,16 +5,17 @@ package com.phasmidsoftware.gryphon.core
  *
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
+ * @tparam P the (mutable) property of this Vertex.
  */
-trait Vertex[V, +X <: EdgeLike[V]] extends VertexLike[V] {
+trait Vertex[V, +X <: EdgeLike[V], P] extends VertexLike[V] with Property[P] {
     /**
      * Method to add an edge (x) to this Vertex.
      *
      * @param y the EdgeLike[V] object to be added this Vertex.
-     *          @tparam Y a super-type of X.
+     * @tparam Y a super-type of X.
      * @return a Vertex[V, Y]
      */
-    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y]
+    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y, P]
 
     /**
      * The adjacency list, an AdjacencyList[X], for this Vertex.
@@ -46,26 +47,46 @@ trait VertexLike[+V] extends Attributed[V]
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
-abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
+abstract class AbstractVertex[V, X <: EdgeLike[V], P: HasZero] extends Vertex[V, X, P] {
 
     private var visited: Boolean = false
+    private var property: P = implicitly[HasZero[P]].zero
 
     def discovered: Boolean = {
-        val result = visited; visited = true; result
+        val result = visited
+        visited = true
+        result
     }
 
     def reset(): Unit = {
         visited = false
     }
 
+
+    /**
+     * Method to yield the current value of this property.
+     *
+     * @return property.
+     */
+    def getProperty: P = property
+
+    /**
+     * Mutating method to set the property.
+     *
+     * @param p the new value of the property.
+     */
+    def setProperty(p: P): Unit = {
+        property = p
+    }
+
     /**
      * Method to add an edge to this AbstractVertex.
      *
      * @param y the edge to add.
-     *          @tparam Y a super-type of X.
+     * @tparam Y a super-type of X.
      * @return a new AbstractVertex which includes the new edge in its adjacency list.
      */
-    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y] = unit(AdjacencyList(y +: adjacent.xs))
+    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y, P] = unit(AdjacencyList(y +: adjacent.xs))
 
     /**
      * Method to construct a new AbstractVertex.
@@ -74,7 +95,7 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
      * @tparam Y the edge-type of the resulting AbstractVertex
      * @return a new AbstractVertex[V, Y].
      */
-    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y]
+    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y, P]
 }
 
 /**
@@ -86,7 +107,7 @@ abstract class AbstractVertex[V, X <: EdgeLike[V]] extends Vertex[V, X] {
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
  */
-case class VertexCase[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X] {
+case class VertexCase[V, X <: EdgeLike[V], P: HasZero](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X, P] {
 
     /**
      * Method to construct a new ConcreteVersion based on the types V and X.
@@ -96,7 +117,7 @@ case class VertexCase[V, X <: EdgeLike[V]](attribute: V, adjacent: AdjacencyList
      * @tparam Y the edge-type of the resulting AbstractVertex
      * @return a new VertexCase[W, Y].
      */
-    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y] = VertexCase[W, Y](attribute, adjacent)
+    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y, P] = VertexCase(attribute, adjacent)
 }
 
 /**
@@ -111,5 +132,5 @@ object Vertex {
      * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
      * @return an empty VertexCase[V, X].
      */
-    def empty[V, X <: EdgeLike[V]](a: V): Vertex[V, X] = VertexCase[V, X](a, AdjacencyList.empty)
+    def empty[V, X <: EdgeLike[V], P: HasZero](a: V): Vertex[V, X, P] = VertexCase(a, AdjacencyList.empty)
 }

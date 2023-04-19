@@ -1,8 +1,8 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
-import com.phasmidsoftware.gryphon.util.GraphBuilder.{createFromUndirectedEdgeList, createGraphFromUndirectedOrderedEdges, resource}
-import com.phasmidsoftware.gryphon.util.{VertexDataParser, VertexDataTSP}
+import com.phasmidsoftware.gryphon.util.GraphBuilder.resource
+import com.phasmidsoftware.gryphon.util.{GraphBuilder, VertexDataParser, VertexDataTSP}
 import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}
 import com.phasmidsoftware.table.Table
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,17 +17,19 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val edge1 = UndirectedOrderedEdgeCase("A", "B", 1)
         val edge3 = UndirectedOrderedEdgeCase("A", "D", 3)
         val edge2 = UndirectedOrderedEdgeCase("A", "C", 2)
-        val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int]] = UndirectedGraph[String, Int]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2).asInstanceOf[UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int]]]
+        val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit] = UndirectedGraph[String, Int, Unit]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2).asInstanceOf[UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit]]
         val target: LazyPrimCase[String, Int] = new LazyPrimHelper[String, Int]().createFromGraph(graph)
         target.edges shouldBe List(edge3, edge2, edge1)
     }
 
     it should "mst of Prim demo from Sedgewick & Wayne" in {
         val uy = resource("/prim.graph")
-        val esy = createFromUndirectedEdgeList[Int, Double](uy)(w => Try(w.toInt), w => Try(w.toDouble))
-        createGraphFromUndirectedOrderedEdges(esy) match {
+        val graphBuilder = new GraphBuilder[Int, Double, Unit]()
+
+        val esy = graphBuilder.createFromUndirectedEdgeList(uy)(w => Try(w.toInt), w => Try(w.toDouble))
+        graphBuilder.createGraphFromUndirectedOrderedEdges(esy) match {
             case Success(graph) =>
-                val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double]]])
+                val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])
                 prim.edges.size shouldBe 7
                 prim.mst.vertices.size shouldBe 8
                 prim.edges map (_.attribute) shouldBe List(0.26, 0.16, 0.4, 0.17, 0.35, 0.28, 0.19)
