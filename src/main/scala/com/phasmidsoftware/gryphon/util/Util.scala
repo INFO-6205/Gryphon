@@ -19,7 +19,8 @@ object Util {
     def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
 
     /**
-     * Method to get the value of an Option[X] but returning a Try with the Failure case having a specific Throwable.
+     * Method to get the value of an Option[X] wrapped in Try.
+     * In the case of a None input, a Failure, of the given Throwable, is returned.
      *
      * @param xo an optional value of X (called by name).
      * @param t  a throwable.
@@ -37,13 +38,4 @@ object Util {
      * @return the value of <code>optionToTry(Option(x), t)</code>.
      */
     def tryNonNull[X](x: => X, t: => Throwable): Try[X] = optionToTry(Option(x), t)
-
-
-//    def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
-//        case Some(u) => Success(u)
-//        case None => Failure(GraphException(s"$resourceName is not a valid resource for $clazz"))
-//    }
-
-//    def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
-
 }

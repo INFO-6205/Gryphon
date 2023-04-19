@@ -1,11 +1,12 @@
 package com.phasmidsoftware.gryphon.java
 
 import com.phasmidsoftware.gryphon.core._
-import com.phasmidsoftware.gryphon.util.Util.tryNonNull
-import com.phasmidsoftware.util.FP.resource
+import com.phasmidsoftware.gryphon.util.Util.{optionToTry, tryNonNull}
+import com.phasmidsoftware.util.FP.{resource, tryToOption}
 import java.util.{Optional, function}
 import scala.compat.java8.OptionConverters.RichOptionForJava8
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters.RichOptional
 import scala.util.Try
 
 
@@ -14,11 +15,14 @@ import scala.util.Try
  */
 case class GraphBuilderJava[V: Ordering, E: Ordering, P: HasZero](gb: com.phasmidsoftware.gryphon.util.GraphBuilder[V, E, Unit]) {
 
-    def createUndirectedEdgeList(u: String): Optional[java.util.List[UndirectedOrderedEdge[V, E]]] = {
-        gb.createUndirectedEdgeList(resource(u)).toOption.map(_.toSeq.asJava).asJava
-    }
+    def createUndirectedEdgeList(u: String): Optional[java.util.List[UndirectedOrderedEdge[V, E]]] =
+        tryToOption(x => x.printStackTrace(System.err))(gb.createUndirectedEdgeList(resource(u))).map(_.toSeq.asJava).asJava
 
-    def createGraphFromUndirectedOrderedEdges(esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[Graph[V, E, UndirectedOrderedEdge[V, E], Unit]] = gb.createGraphFromUndirectedOrderedEdges(esy)
+    def createGraphFromUndirectedEdgeList(eso: Optional[java.util.List[UndirectedOrderedEdge[V, E]]]): Optional[Graph[V, E, UndirectedOrderedEdge[V, E], Unit]] = {
+        val ely = optionToTry(eso.toScala, GraphException(s"GraphBuilderJava.createGraphFromUndirectedEdgeList: cannot get edge list: $eso"))
+        val esy = ely map (el => el.asScala)
+        gb.createGraphFromUndirectedOrderedEdges(esy).toOption.asJava
+    }
 }
 
 object GraphBuilderJava {

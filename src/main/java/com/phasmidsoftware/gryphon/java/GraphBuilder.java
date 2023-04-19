@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * TODO eliminate this class.
+ *
+ * @param <V> vertex type
+ * @param <E> edge type
+ */
 public class GraphBuilder<V extends Comparable<V>, E extends Comparable<E>> {
     public GraphBuilder(Function<String, V> vParser, Function<String, E> eParser) {
         gb = com.phasmidsoftware.gryphon.java.GraphBuilderJava.create(vParser, eParser);
