@@ -1,20 +1,20 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
-import com.phasmidsoftware.gryphon.util.GraphBuilder.resource
 import com.phasmidsoftware.gryphon.util.{EdgeDataParser, GraphBuilder}
+import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 class GraphBuilderSpec extends AnyFlatSpec with should.Matchers {
 
     behavior of "GraphBuilder"
 
-    it should "createFromUndirectedEdgeList" in {
+    it should "createUndirectedEdgeList" in {
         val primGraph = "/prim.graph"
         val uy = resource(primGraph)
         val graphBuilder = new GraphBuilder[Int, Double, Unit]()
-        val esy = graphBuilder.createFromUndirectedEdgeList(uy)(w => Try(w.toInt), w => Try(w.toDouble))
+        val esy = graphBuilder.createUndirectedEdgeList(uy)
         graphBuilder.createGraphFromUndirectedOrderedEdges(esy) match {
             case Success(g) =>
                 val edges = g.edges

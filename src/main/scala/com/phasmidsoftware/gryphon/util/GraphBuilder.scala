@@ -1,20 +1,19 @@
 package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.gryphon.core._
-import com.phasmidsoftware.parse.CellParser
+import com.phasmidsoftware.util.FP.resource
 import java.net.URL
 import scala.io.Source
-import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 /**
  * Utility class to help create graphs from edge lists, etc.
  */
-class GraphBuilder[V: Ordering : CellParser, E: Ordering : CellParser, P: HasZero]() {
+class GraphBuilder[V: Ordering : Parseable, E: Ordering : Parseable, P: HasZero]() {
 
-    type G = Graph[V, E, UndirectedOrderedEdge[V, E], P]
+    private type G = Graph[V, E, UndirectedOrderedEdge[V, E], P]
 
-    def createFromUndirectedEdgeList(uy: Try[URL])(fv: String => Try[V], fe: String => Try[E]): Try[Iterable[UndirectedOrderedEdge[V, E]]] = {
+    def createUndirectedEdgeList(uy: Try[URL]): Try[Iterable[UndirectedOrderedEdge[V, E]]] = {
         val eysy: Try[Iterator[Try[(V, V, E)]]] = for {
             u <- uy
             s = Source.fromURL(u)
@@ -22,9 +21,9 @@ class GraphBuilder[V: Ordering : CellParser, E: Ordering : CellParser, P: HasZer
             string <- s.getLines()
             Array(wV1, wV2, wE) = string.split(" ")
         } yield for {
-            v1 <- fv(wV1)
-            v2 <- fv(wV2)
-            e <- fe(wE)
+            v1 <- implicitly[Parseable[V]].parse(wV1)
+            v2 <- implicitly[Parseable[V]].parse(wV2)
+            e <- implicitly[Parseable[E]].parse(wE)
         } yield (v1, v2, e)
 
         for {
@@ -36,7 +35,7 @@ class GraphBuilder[V: Ordering : CellParser, E: Ordering : CellParser, P: HasZer
         } yield edge
     }
 
-    def createGraphFromUndirectedOrderedEdges(esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[G] =
+    def createGraphFromUndirectedOrderedEdges(esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[Graph[V, E, UndirectedOrderedEdge[V, E], P]] =
         esy map {
             es =>
                 // CONSIDER avoiding the two asInstanceOf calls
@@ -55,22 +54,13 @@ class GraphBuilder[V: Ordering : CellParser, E: Ordering : CellParser, P: HasZer
 
 object GraphBuilder {
 
-    def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
-        case Some(u) => Success(u)
-        case None => Failure(GraphException(s"$resourceName is not a valid resource for $clazz"))
-    }
-
-    def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
-
 }
 
 object PrimDemo extends App {
 
-    import GraphBuilder._
-
     private val resourceName = "/prim.graph"
     private val uy = resource(resourceName)
-    private val gy = new GraphBuilder[Int, Double, Unit]().createFromUndirectedEdgeList(uy)(w => Try(w.toInt), w => Try(w.toDouble))
+    private val gy = new GraphBuilder[Int, Double, Unit]().createUndirectedEdgeList(uy)
     gy match {
         case Success(g) =>
             println(s"read ${g.size} edges from $resourceName")

@@ -1,10 +1,10 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
-import com.phasmidsoftware.gryphon.util.GraphBuilder.resource
 import com.phasmidsoftware.gryphon.util.{GraphBuilder, VertexDataParser, VertexDataTSP}
 import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}
 import com.phasmidsoftware.table.Table
+import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success, Try}
@@ -26,7 +26,7 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val uy = resource("/prim.graph")
         val graphBuilder = new GraphBuilder[Int, Double, Unit]()
 
-        val esy = graphBuilder.createFromUndirectedEdgeList(uy)(w => Try(w.toInt), w => Try(w.toDouble))
+        val esy = graphBuilder.createUndirectedEdgeList(uy)
         graphBuilder.createGraphFromUndirectedOrderedEdges(esy) match {
             case Success(graph) =>
                 val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])
