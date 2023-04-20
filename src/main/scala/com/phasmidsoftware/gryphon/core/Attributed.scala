@@ -9,3 +9,19 @@ trait Attributed[+A] {
      */
     val attribute: A
 }
+
+trait Property[P] {
+    /**
+     * Method to yield the current value of this property.
+     *
+     * @return
+     */
+    def getProperty: P
+
+    /**
+     * Mutating method to set the property.
+     *
+     * @param p the new value of the property.
+     */
+    def setProperty(p: P): Unit
+}

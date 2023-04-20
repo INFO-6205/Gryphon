@@ -306,6 +306,7 @@ abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) ex
 
     protected def appendToJournal(implicit ev: Journal[J, V]): V => J => Option[J] = v => a => Some(ev.append(a, v))
 
+    //noinspection MutatorLikeMethodIsParameterless
     protected def doNothing: V => J => Option[J] = _ => _ => None
 
     def unit(journal: J): Visitor[V, J]
